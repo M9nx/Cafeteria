@@ -15,7 +15,7 @@ final class View
     }
 
     /** @param array<string, mixed> $data */
-    public function render(string $template, array $data = [], ?string $layout = null): Response
+    public function renderTemplate(string $template, array $data = [], ?string $layout = null): Response
     {
         $templateFile = $this->resolveTemplate($template);
 
@@ -58,6 +58,6 @@ final class View
         $basePath = dirname(__DIR__, 3) . '/resources/views';
         $view = new self($basePath);
 
-        return $view->render($template, $data, $layout);
+        return $view->renderTemplate($template, $data, $layout);
     }
 }
