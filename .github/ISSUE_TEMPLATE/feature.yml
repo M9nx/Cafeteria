@@ -1,0 +1,63 @@
+name: Feature / Task
+description: Leaf work-package issue for a single WBS deliverable
+title: "[WBS-ID] "
+labels:
+  - type:task
+body:
+  - type: input
+    id: wbs_id
+    attributes:
+      label: WBS ID
+      description: Workbook package identifier (required)
+      placeholder: "P2-BEG1"
+    validations:
+      required: true
+
+  - type: input
+    id: parent_phase
+    attributes:
+      label: Parent phase issue
+      description: Link to the phase issue number
+      placeholder: "#9"
+    validations:
+      required: true
+
+  - type: textarea
+    id: learning
+    attributes:
+      label: Learning evidence
+      description: Concepts reviewed before starting (links or summary)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Core
+        - Core + conditional bonus
+        - Core + conditional enhancement
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Files to create or modify
+      description: Exact paths from the phase appendix
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Delivery evidence plan
+      description: Tests, screenshots, or commands that will prove completion
