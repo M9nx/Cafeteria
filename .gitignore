@@ -1,0 +1,13 @@
+.env
+/vendor/
+/storage/logs/*.log
+/storage/uploads/*
+!/storage/logs/.gitignore
+!/storage/uploads/.gitignore
+.phpunit.cache/
+.phpunit.result.cache
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
