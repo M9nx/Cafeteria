@@ -1,8 +1,0 @@
-# Architecture-sensitive and security-sensitive paths
-/app/Core/ @M9nx @salma150
-/app/Policies/ @M9nx
-/database/ @M9nx @salma150
-/config/ @M9nx @salma150
-/bootstrap/ @M9nx
-/docs/adr/ @M9nx @hana-06820
-/.github/ @M9nx
