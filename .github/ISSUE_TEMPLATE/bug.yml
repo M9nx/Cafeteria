@@ -1,0 +1,50 @@
+name: Bug / Defect
+description: Report a defect with reproduction and severity
+title: "[BUG] "
+labels:
+  - type:bug
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Screenshot, test output, or log excerpt
+
+  - type: input
+    id: owner
+    attributes:
+      label: Suspected owner / module
+      placeholder: "P2-INTR / OrderService"

@@ -1,0 +1,47 @@
+name: Phase
+description: Phase-level parent issue for one delivery day
+title: "[P#] "
+labels:
+  - type:phase
+body:
+  - type: input
+    id: day
+    attributes:
+      label: Day number
+      placeholder: "1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: children
+    attributes:
+      label: Child WBS checklist
+      description: Exactly five WBS IDs for this day
+      value: |
+        - [ ] P0-LEAD
+        - [ ] P0-INTR
+        - [ ] P0-BEG1
+        - [ ] P0-BEG2
+        - [ ] P0-BEG3
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Cross-day dependencies
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Phase outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: exit_gate
+    attributes:
+      label: Exit gate
+      description: Conditions required before the next day starts
+    validations:
+      required: true
