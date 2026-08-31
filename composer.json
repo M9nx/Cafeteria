@@ -29,7 +29,6 @@
         "test:feature": "phpunit --testsuite Feature",
         "lint": "find app bootstrap config database public routes tests -name '*.php' -print0 | xargs -0 -n1 php -l",
         "migrate": "php database/migrate.php",
-        "seed": "php database/seed.php",
         "check": [
             "composer validate --strict",
             "@lint",
