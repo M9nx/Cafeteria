@@ -1,0 +1,45 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "m9nx/cafeteria",
+    "description": "A pure PHP and MySQL cafeteria ordering and management application.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cafeteria\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration",
+        "test:feature": "phpunit --testsuite Feature",
+        "lint": "find app bootstrap config database public routes tests -name '*.php' -print0 | xargs -0 -n1 php -l",
+        "migrate": "php database/migrate.php",
+        "check": [
+            "composer validate --strict",
+            "@lint",
+            "@test"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "allow-plugins": {}
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
