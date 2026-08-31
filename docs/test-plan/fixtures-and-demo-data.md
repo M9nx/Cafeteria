@@ -35,4 +35,5 @@ Evidence may include:
 - Screenshots when they help verify UI behavior.
 - Relevant documentation or migration evidence.
 - Test results after addressing review comments.
+
 Evidence should clearly show what was verified and should not contain secrets or sensitive user information.

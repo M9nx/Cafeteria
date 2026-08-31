@@ -12,6 +12,7 @@ Example:
 
 ```text
 test/7-traceability-test-foundation
+```
 
 ## 2. Make changes
 
@@ -23,6 +24,7 @@ Run:
 
 ```bash
 git status
+```
 
 ## 4. Commit changes
 
@@ -33,7 +35,7 @@ Examples:
 ```bash
 git add .
 git commit -m "test: add acceptance test matrix"
-
+```
 
 ## 5. Push the branch
 
@@ -43,6 +45,7 @@ Example:
 
 ```bash
 git push -u origin <branch-name>
+```
 
 ## 6. Open a Pull Request
 
@@ -52,6 +55,7 @@ The PR should reference the issue, for example:
 
 ```text
 Closes #7
+```
 
 ## 7. Review
 
