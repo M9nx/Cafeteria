@@ -1,0 +1,110 @@
+:root {
+    --app-primary: #0d6efd;
+    --app-primary-dark: #0a58ca;
+    --app-surface: #ffffff;
+    --app-muted: #6c757d;
+    --app-border: #dee2e6;
+    --app-focus: #86b7fe;
+    --app-radius: 0.75rem;
+    --app-spacing: 1rem;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #212529;
+    background-color: #f8f9fa;
+}
+
+.app-body {
+    background-color: #f8f9fa;
+}
+
+.guest-body {
+    background: linear-gradient(180deg, #eef4ff 0%, #f8f9fa 100%);
+}
+
+.app-navbar {
+    background-color: var(--app-primary);
+}
+
+.app-navbar .nav-link,
+.app-navbar .navbar-brand {
+    color: #fff;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus-visible,
+.app-navbar .navbar-brand:hover,
+.app-navbar .navbar-brand:focus-visible {
+    color: #e7f1ff;
+}
+
+.guest-card {
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius);
+}
+
+.app-main,
+.guest-main {
+    outline: none;
+}
+
+.app-alert {
+    border-radius: calc(var(--app-radius) - 0.25rem);
+}
+
+.app-form .form-label {
+    font-weight: 600;
+}
+
+.app-form .form-control:focus,
+.app-form .btn:focus-visible,
+.navbar-toggler:focus-visible,
+.btn-close:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.app-field-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.app-form-errors .alert-link {
+    text-decoration: underline;
+}
+
+.app-footer {
+    background-color: var(--app-surface);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+@media (max-width: 991.98px) {
+    .app-navbar .navbar-nav .nav-link {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
