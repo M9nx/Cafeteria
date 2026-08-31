@@ -1,0 +1,21 @@
+CREATE TABLE orders (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    created_by_user_id BIGINT UNSIGNED NOT NULL,
+    room_id BIGINT UNSIGNED NOT NULL,
+    status ENUM('PROCESSING', 'OUT_FOR_DELIVERY', 'DONE', 'CANCELLED') NOT NULL DEFAULT 'PROCESSING',
+    notes TEXT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    cancelled_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_orders_user_id (user_id),
+    KEY idx_orders_created_by_user_id (created_by_user_id),
+    KEY idx_orders_room_id (room_id),
+    KEY idx_orders_status (status),
+    CONSTRAINT fk_orders_user_id FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT fk_orders_created_by_user_id FOREIGN KEY (created_by_user_id) REFERENCES users (id),
+    CONSTRAINT fk_orders_room_id FOREIGN KEY (room_id) REFERENCES rooms (id),
+    CONSTRAINT chk_orders_total_amount_non_negative CHECK (total_amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
