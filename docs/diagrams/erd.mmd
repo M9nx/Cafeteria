@@ -1,0 +1,94 @@
+erDiagram
+    ROOMS {
+        BIGINT id PK
+        VARCHAR name UK
+        BOOLEAN is_active
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    USERS {
+        BIGINT id PK
+        VARCHAR name
+        VARCHAR email UK
+        VARCHAR password_hash
+        ENUM role
+        BIGINT room_id FK
+        VARCHAR extension
+        VARCHAR profile_image_path
+        BOOLEAN is_active
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    PASSWORD_RESET_TOKENS {
+        BIGINT id PK
+        BIGINT user_id FK
+        CHAR token_hash UK
+        DATETIME expires_at
+        DATETIME used_at
+        DATETIME created_at
+    }
+
+    CATEGORIES {
+        BIGINT id PK
+        VARCHAR name UK
+        BOOLEAN is_active
+        DATETIME created_at
+        DATETIME updated_at
+    }
+
+    PRODUCTS {
+        BIGINT id PK
+        BIGINT category_id FK
+        VARCHAR name
+        DECIMAL price
+        VARCHAR image_path
+        BOOLEAN is_available
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
+    }
+
+    ORDERS {
+        BIGINT id PK
+        BIGINT user_id FK
+        BIGINT created_by_user_id FK
+        BIGINT room_id FK
+        ENUM status
+        TEXT notes
+        DECIMAL total_amount
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME cancelled_at
+    }
+
+    ORDER_ITEMS {
+        BIGINT id PK
+        BIGINT order_id FK
+        BIGINT product_id FK
+        VARCHAR product_name_snapshot
+        DECIMAL unit_price_snapshot
+        INT quantity
+        DECIMAL line_total
+    }
+
+    ORDER_STATUS_HISTORY {
+        BIGINT id PK
+        BIGINT order_id FK
+        ENUM from_status
+        ENUM to_status
+        BIGINT changed_by_user_id FK
+        DATETIME changed_at
+    }
+
+    ROOMS ||--o{ USERS : assigned_to
+    ROOMS ||--o{ ORDERS : delivered_to
+    USERS ||--o{ PASSWORD_RESET_TOKENS : owns
+    USERS ||--o{ ORDERS : receives
+    USERS ||--o{ ORDERS : creates
+    USERS ||--o{ ORDER_STATUS_HISTORY : changes
+    CATEGORIES ||--o{ PRODUCTS : contains
+    PRODUCTS ||--o{ ORDER_ITEMS : referenced_by
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    ORDERS ||--o{ ORDER_STATUS_HISTORY : records
