@@ -74,4 +74,4 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) for branch names, commits, PR rules, and
 |---|---|
 | Master issue | https://github.com/M9nx/Cafeteria/issues/1 |
 | P0 phase | https://github.com/M9nx/Cafeteria/issues/2 |
-| Workbook | Google Sheets WBS (team access) |
+| Workbook | Google Sheets WBS ([team access](https://docs.google.com/spreadsheets/d/1Utz2Ijn-ZSj5UN5EhxXY05H3lkVgSBWV44bp7ofFWFA/edit?gid=1729829340#gid=1729829340)) |
