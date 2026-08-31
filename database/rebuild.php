@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Cafeteria\Core\Config\Environment;
 use Cafeteria\Core\Database\ConnectionFactory;
-use PDO;
 
 if (PHP_SAPI !== 'cli') {
     http_response_code(404);
@@ -42,7 +41,7 @@ try {
 
     $tables = $pdo
         ->query('SHOW FULL TABLES WHERE Table_type = "BASE TABLE"')
-        ->fetchAll(PDO::FETCH_NUM);
+        ->fetchAll(\PDO::FETCH_NUM);
 
     foreach ($tables as [$table]) {
         $escaped = str_replace('`', '``', (string) $table);
