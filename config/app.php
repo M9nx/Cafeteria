@@ -16,4 +16,5 @@ return [
     ),
     'timezone' => Environment::get('APP_TIMEZONE', 'Africa/Cairo'),
     'currency' => Environment::get('APP_CURRENCY', 'EGP'),
+    'reset_token_ttl_minutes' => Environment::int('RESET_TOKEN_TTL_MINUTES', 60),
 ];

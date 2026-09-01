@@ -41,11 +41,6 @@ final class PdoPasswordResetTokenRepository implements PasswordResetTokenReposit
         return (int) $this->pdo->lastInsertId();
     }
 
-    /**
- * Invalidate unused tokens by marking them as used.
- * Rows are retained for audit history instead of being deleted.
- */
-
     public function findValidByHash(string $tokenHash): ?array
     {
         $statement = $this->pdo->prepare(
@@ -88,6 +83,10 @@ final class PdoPasswordResetTokenRepository implements PasswordResetTokenReposit
         return $statement->rowCount() === 1;
     }
 
+    /**
+     * Invalidate unused tokens by marking them as used.
+     * Rows are retained for audit history instead of being deleted.
+     */
     public function invalidateForUser(int $userId): void
     {
         $statement = $this->pdo->prepare(

@@ -35,8 +35,8 @@ final class PdoAuthUserRepository implements AuthUserRepositoryInterface
         );
 
         $statement->execute([
-    'email' => strtolower(trim($email)),
-           ]);
+            'email' => strtolower(trim($email)),
+        ]);
 
         $row = $statement->fetch();
 
@@ -53,18 +53,18 @@ final class PdoAuthUserRepository implements AuthUserRepositoryInterface
     }
 
     public function updatePassword(int $userId, string $passwordHash): bool
-{
-    $statement = $this->pdo->prepare(
-        'UPDATE users
-         SET password_hash = :password_hash
-         WHERE id = :user_id'
-    );
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET password_hash = :password_hash
+             WHERE id = :user_id'
+        );
 
-    $statement->execute([
-        'user_id' => $userId,
-        'password_hash' => $passwordHash,
-    ]);
+        $statement->execute([
+            'user_id' => $userId,
+            'password_hash' => $passwordHash,
+        ]);
 
-    return $statement->rowCount() === 1;
-}
+        return $statement->rowCount() === 1;
+    }
 }

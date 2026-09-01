@@ -21,9 +21,9 @@ final class AuthService
 
     public function login(string $email, string $password): bool
     {
-       $email = strtolower(trim($email));
+        $email = strtolower(trim($email));
 
-$record = $this->users->findActiveByEmail($email);
+        $record = $this->users->findActiveByEmail($email);
 
         if (
             $record === null
