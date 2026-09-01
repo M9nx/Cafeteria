@@ -56,7 +56,7 @@ $isAdmin = $isAuthenticated && method_exists($currentUser, 'isAdmin') && $curren
                                     <?= $csrfField ?>
                                 <?php else: ?>
                                     <!-- CSRF token slot for future auth wiring -->
-                                    <input type="hidden" name="_csrf" value="">
+                                    <input type="hidden" name="_csrf_token" value="">
                                 <?php endif; ?>
                                 <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
                             </form>
