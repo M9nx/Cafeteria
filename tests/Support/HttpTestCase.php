@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use Cafeteria\Core\Auth\AuthMiddleware;
+use Cafeteria\Core\Auth\CsrfTokenManager;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\Core\Routing\Router;
@@ -31,6 +33,8 @@ abstract class HttpTestCase extends TestCase
 
         $this->router = $app['router'];
         $this->session = $app['session'];
+
+        $_SESSION = [];
     }
 
     protected function request(
@@ -55,11 +59,71 @@ abstract class HttpTestCase extends TestCase
         return $this->request('POST', $path, $body);
     }
 
+    protected function csrfToken(): string
+    {
+        $token = $this->session->get('_csrf_token');
+
+        self::assertIsString($token);
+        self::assertNotSame('', $token);
+
+        return $token;
+    }
+
+    protected function loginAsUser(): void
+    {
+        $this->session->set(
+            AuthMiddleware::SESSION_USER_KEY,
+            [
+                'id' => 2,
+                'email' => 'user@example.test',
+                'name' => 'Demo User',
+                'role' => 'USER',
+            ],
+        );
+    }
+
+    protected function loginAsAdmin(): void
+    {
+        $this->session->set(
+            AuthMiddleware::SESSION_USER_KEY,
+            [
+                'id' => 1,
+                'email' => 'admin@example.test',
+                'name' => 'Demo Admin',
+                'role' => 'ADMIN',
+            ],
+        );
+    }
+
+    protected function logout(): void
+    {
+        $this->session->destroy();
+    }
+
     protected function responseContent(Response $response): string
     {
         ob_start();
         $response->send();
 
         return (string) ob_get_clean();
+    }
+
+    protected function responseStatus(Response $response): int
+    {
+        $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('status');
+
+        return $property->getValue($response);
+    }
+
+    protected function responseHeader(
+        Response $response,
+        string $name,
+    ): ?string {
+        $reflection = new \ReflectionClass($response);
+        $property = $reflection->getProperty('headers');
+        $headers = $property->getValue($response);
+
+        return $headers[$name] ?? null;
     }
 }
