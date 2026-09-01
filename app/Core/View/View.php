@@ -9,6 +9,14 @@ use RuntimeException;
 
 final class View
 {
+    /** @var array<string, mixed> */
+    private static array $shared = [];
+
+    public static function share(string $key, mixed $value): void
+    {
+        self::$shared[$key] = $value;
+    }
+
     public function __construct(
         private readonly string $basePath,
     ) {
@@ -55,6 +63,8 @@ final class View
     /** @param array<string, mixed> $data */
     public static function render(string $template, array $data = [], ?string $layout = null): Response
     {
+        $data = array_merge(self::$shared, $data);
+
         $basePath = dirname(__DIR__, 3) . '/resources/views';
         $view = new self($basePath);
 
