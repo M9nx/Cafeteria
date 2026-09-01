@@ -18,9 +18,11 @@ $tokenValue = htmlspecialchars((string) ($token ?? ''), ENT_QUOTES, 'UTF-8');
     ?>
 
     <form action="/reset-password" method="post" class="app-form" novalidate>
-        <?php
-        require dirname(__DIR__) . '/components/csrf-field.php';
-        ?>
+        <input
+    type="hidden"
+    name="_csrf_token"
+    value="<?= htmlspecialchars((string) ($csrfToken ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+>
 
         <input type="hidden" name="token" value="<?= $tokenValue ?>">
 
