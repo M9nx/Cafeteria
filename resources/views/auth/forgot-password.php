@@ -28,13 +28,11 @@ $resultMessage = trim((string) ($resultMessage ?? ''));
     ?>
 
     <form action="/forgot-password" method="post" class="app-form" novalidate>
-        <?php if (isset($csrfField) && is_string($csrfField)): ?>
-            <?= $csrfField ?>
-        <?php else: ?>
-            <!-- CSRF token slot for future auth wiring -->
-            <input type="hidden" name="_csrf" value="">
-        <?php endif; ?>
-
+        <input
+    type="hidden"
+    name="_csrf_token"
+    value="<?= htmlspecialchars((string) ($csrfToken ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+>
         <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
             <input
