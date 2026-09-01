@@ -35,8 +35,8 @@ final class PdoAuthUserRepository implements AuthUserRepositoryInterface
         );
 
         $statement->execute([
-            $email = strtolower(trim($email))
-        ]);
+    'email' => strtolower(trim($email)),
+           ]);
 
         $row = $statement->fetch();
 
