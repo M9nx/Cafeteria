@@ -52,9 +52,12 @@ $isAdmin = $isAuthenticated && method_exists($currentUser, 'isAdmin') && $curren
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <li class="nav-item">
                             <form action="/logout" method="post" class="d-inline">
-                                <form action="/logout" method="post" class="d-inline">
-                               <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
-                                </form>
+                                <?php if (isset($csrfField) && is_string($csrfField)): ?>
+                                    <?= $csrfField ?>
+                                <?php else: ?>
+                                    <!-- CSRF token slot for future auth wiring -->
+                                    <input type="hidden" name="_csrf_token" value="">
+                                <?php endif; ?>
                                 <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
                             </form>
                         </li>
