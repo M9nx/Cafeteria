@@ -18,12 +18,11 @@ $tokenValue = htmlspecialchars((string) ($token ?? ''), ENT_QUOTES, 'UTF-8');
     ?>
 
     <form action="/reset-password" method="post" class="app-form" novalidate>
-        <?php if (isset($csrfField) && is_string($csrfField)): ?>
-            <?= $csrfField ?>
-        <?php else: ?>
-            <!-- CSRF token slot for future auth wiring -->
-            <input type="hidden" name="_csrf" value="">
-        <?php endif; ?>
+        <input
+    type="hidden"
+    name="_csrf_token"
+    value="<?= htmlspecialchars((string) ($csrfToken ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+>
 
         <input type="hidden" name="token" value="<?= $tokenValue ?>">
 
