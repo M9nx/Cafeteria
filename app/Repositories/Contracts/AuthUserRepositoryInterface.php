@@ -12,4 +12,6 @@ interface AuthUserRepositoryInterface
      * @return array<string, mixed>|null
      */
     public function findActiveByEmail(string $email): ?array;
+
+    public function updatePassword(int $userId, string $passwordHash): bool;
 }
