@@ -24,6 +24,12 @@ final class InactiveUserLoginTest extends HttpTestCase
         );
         $statement->execute(['email' => $email]);
 
+        self::assertSame(
+            1,
+            $statement->rowCount(),
+            'Expected seeded demo user before testing inactive login.'
+        );
+
         try {
             $response = $this->post('/login', [
                 'email' => $email,

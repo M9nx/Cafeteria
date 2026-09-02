@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Cafeteria\Tests\Unit\Policies;
+namespace Tests\Unit\Policies;
 
 use Cafeteria\Core\Auth\AuthenticatedUser;
 use Cafeteria\Domain\Users\Role;

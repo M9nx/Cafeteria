@@ -11,33 +11,38 @@ use Tests\Support\HttpTestCase;
 final class PasswordResetTest extends HttpTestCase
 {
     private const EMAIL = 'user@example.test';
+    private const DEV_PASSWORD = 'DevPassword123!';
 
     public function test_valid_reset_token_changes_password_and_redirects_to_login(): void
     {
         $pdo = $this->pdo();
         $token = $this->createResetToken($pdo, self::EMAIL);
 
-        $response = $this->post('/reset-password', [
-            'token' => $token,
-            'password' => 'NewPassword123!',
-            'password_confirmation' => 'NewPassword123!',
-            CsrfTokenManager::FIELD_NAME => $this->csrfToken(),
-        ]);
+        try {
+            $response = $this->post('/reset-password', [
+                'token' => $token,
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
+                CsrfTokenManager::FIELD_NAME => $this->csrfToken(),
+            ]);
 
-        self::assertSame(302, $this->responseStatus($response));
-        self::assertSame('/login', $this->responseHeader($response, 'Location'));
+            self::assertSame(302, $this->responseStatus($response));
+            self::assertSame('/login', $this->responseHeader($response, 'Location'));
 
-        $this->get('/login');
+            $this->get('/login');
 
-        $login = $this->post('/login', [
-            'email' => self::EMAIL,
-            'password' => 'NewPassword123!',
-            CsrfTokenManager::FIELD_NAME => $this->csrfToken(),
-        ]);
+            $login = $this->post('/login', [
+                'email' => self::EMAIL,
+                'password' => 'NewPassword123!',
+                CsrfTokenManager::FIELD_NAME => $this->csrfToken(),
+            ]);
 
-        self::assertSame(302, $this->responseStatus($login));
-        self::assertSame('/', $this->responseHeader($login, 'Location'));
-            }
+            self::assertSame(302, $this->responseStatus($login));
+            self::assertSame('/', $this->responseHeader($login, 'Location'));
+        } finally {
+            $this->restorePassword($pdo, self::EMAIL);
+        }
+    }
 
     public function test_invalid_reset_token_is_rejected(): void
     {
@@ -137,7 +142,10 @@ final class PasswordResetTest extends HttpTestCase
 
         $id = $statement->fetchColumn();
 
-        self::assertNotFalse($id);
+        self::assertNotFalse(
+            $id,
+            'Expected seeded demo user before testing password reset.'
+        );
 
         return (int) $id;
     }
@@ -154,19 +162,19 @@ final class PasswordResetTest extends HttpTestCase
         $userId = $this->userId($pdo, $email);
 
         $pdo->prepare(
-        'UPDATE password_reset_tokens
-        SET used_at = CASE
-            WHEN expires_at < UTC_TIMESTAMP()
-            THEN expires_at
-            ELSE UTC_TIMESTAMP()
-        END
-        WHERE user_id = :user_id
-        AND used_at IS NULL'
-    )->execute([
-        'user_id' => $userId,
-    ]);
+            'UPDATE password_reset_tokens
+            SET used_at = CASE
+                WHEN expires_at < UTC_TIMESTAMP()
+                THEN expires_at
+                ELSE UTC_TIMESTAMP()
+            END
+            WHERE user_id = :user_id
+            AND used_at IS NULL'
+        )->execute([
+            'user_id' => $userId,
+        ]);
 
-                if ($expired) {
+        if ($expired) {
             $statement = $pdo->prepare(
                 'INSERT INTO password_reset_tokens
                     (user_id, token_hash, expires_at, created_at)
@@ -196,5 +204,18 @@ final class PasswordResetTest extends HttpTestCase
         }
 
         return $token;
+    }
+
+    private function restorePassword(\PDO $pdo, string $email): void
+    {
+        $hash = password_hash(self::DEV_PASSWORD, PASSWORD_DEFAULT);
+
+        $statement = $pdo->prepare(
+            'UPDATE users SET password_hash = :hash WHERE email = :email'
+        );
+        $statement->execute([
+            'hash' => $hash,
+            'email' => $email,
+        ]);
     }
 }

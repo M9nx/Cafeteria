@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Cafeteria\Core\Auth\AuthMiddleware;
-use Cafeteria\Core\Auth\CsrfTokenManager;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\Core\Routing\Router;
@@ -17,24 +16,24 @@ abstract class HttpTestCase extends TestCase
     protected Router $router;
     protected SessionManager $session;
 
-        protected function setUp(): void
-            {
-            parent::setUp();
+    protected function setUp(): void
+    {
+        parent::setUp();
 
-    $_GET = [];
-    $_POST = [];
-    $_FILES = [];
-    $_SERVER = [
-        'REQUEST_METHOD' => 'GET',
-        'REQUEST_URI' => '/',
-    ];
+        $_GET = [];
+        $_POST = [];
+        $_FILES = [];
+        $_SERVER = [
+            'REQUEST_METHOD' => 'GET',
+            'REQUEST_URI' => '/',
+        ];
 
-    $app = require dirname(__DIR__, 2) . '/bootstrap/app.php';
+        $app = require dirname(__DIR__, 2) . '/bootstrap/app.php';
 
-    $this->router = $app['router'];
-    $this->session = $app['session'];
+        $this->router = $app['router'];
+        $this->session = $app['session'];
         $this->session->remove('auth.user');
-}
+    }
 
     protected function request(
         string $method,

@@ -71,7 +71,7 @@ final class OrderOwnershipPolicyTest extends TestCase
             $this->policy->canCancelOrder(
                 $user,
                 2,
-                'COMPLETED'
+                'DONE'
             )
         );
     }

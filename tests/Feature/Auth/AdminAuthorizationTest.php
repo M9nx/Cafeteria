@@ -8,9 +8,17 @@ use Tests\Support\HttpTestCase;
 
 final class AdminAuthorizationTest extends HttpTestCase
 {
-    public function test_guest_is_redirected_to_login_from_admin_route(): void
+    public function test_guest_is_redirected_to_login_from_admin_categories(): void
     {
         $response = $this->get('/admin/categories');
+
+        self::assertSame(302, $this->responseStatus($response));
+        self::assertSame('/login', $this->responseHeader($response, 'Location'));
+    }
+
+    public function test_guest_is_redirected_to_login_from_admin_users(): void
+    {
+        $response = $this->get('/admin/users');
 
         self::assertSame(302, $this->responseStatus($response));
         self::assertSame('/login', $this->responseHeader($response, 'Location'));
