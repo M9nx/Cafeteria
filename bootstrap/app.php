@@ -55,7 +55,6 @@ use Cafeteria\Controllers\Admin\ReportController;
 use Cafeteria\Repositories\Pdo\PdoReportRepository;
 use Cafeteria\Services\ReportQueryService;
 use Cafeteria\Validation\ChecksFilterValidator;
-use DateTimeZone;
 
 require __DIR__ . '/autoload.php';
 
