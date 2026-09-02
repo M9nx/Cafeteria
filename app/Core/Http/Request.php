@@ -86,4 +86,12 @@ final class Request
 
         return $this->headers[$normalized] ?? $default;
     }
+
+    /** @return array<string, mixed> */
+    public function files(): array
+    {
+
+        return $this->files;
+
+    }
 }
