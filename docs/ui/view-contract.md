@@ -105,3 +105,75 @@ return View::render('auth/login', [
 ```
 
 The layout receives `$content` automatically from the view renderer.
+
+## Catalogue and Order Views
+
+Controllers render `user.catalog.index` and `user.orders.create`.
+Both views include `components/catalog-assets.php` for stylesheet and cart script loading.
+
+### `user/catalog/index.php`
+
+Receives prepared catalogue data from the controller.
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$products` | `array{items:list<array<string,mixed>>,total:int,page:int,per_page:int}` | yes | Available products and pagination metadata |
+| `$latestOrder` | `array<string,mixed>|null` | no | Latest order preview for the authenticated user |
+
+The view renders available products through `components/product-card.php`.
+
+### `components/product-card.php`
+
+Receives one prepared product:
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$product` | `array<string,mixed>` | yes | Product data prepared by the controller |
+
+The component displays the product name, category, price, optional image, and an accessible "Add to cart" action.
+
+### `components/cart-summary.php`
+
+Receives client-side cart presentation data:
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$cartItems` | `array<int,array<string,mixed>>` | no | Current cart items for presentation |
+
+The cart summary displays selected items and a client-side total preview.
+
+### `user/orders/create.php`
+
+Receives prepared order-form data:
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$products` | `array{items:list<array<string,mixed>>,total:int,page:int,per_page:int}` | yes | Available products |
+| `$rooms` | `list<array{id:int,name:string}>` | yes | Active delivery rooms |
+| `$errors` | `list<string>` | no | Validation errors |
+| `$old` | `array<string,mixed>` | no | Previously submitted non-sensitive values |
+
+The form submits to `POST /orders` using `room_id`, `notes`, and `items[][product_id]` / `items[][quantity]`.
+
+The browser-side total is only a preview. Server-side validation and pricing remain authoritative.
+
+## Catalogue Assets
+
+### `public/assets/js/cart.js`
+
+Presentation-only cart behavior:
+
+- Add available products to the cart.
+- Increase and decrease quantities.
+- Remove an item when its quantity reaches zero.
+- Update line totals and the displayed order total.
+- Generate hidden order item fields for form submission.
+- Do not perform authorization, repository access, or server-side pricing decisions.
+
+### `public/assets/css/catalog.css`
+
+Contains responsive presentation styles for catalogue product cards, cart summary, and order-form layout.
+
+### Client-side authority
+
+Client-side cart state and totals are previews only. The server must validate product availability, quantities, room selection, and authoritative prices when the order is submitted.

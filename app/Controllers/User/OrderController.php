@@ -31,7 +31,7 @@ final class OrderController
         AuthenticatedUser $user
     ): Response {
         return View::render(
-            'user.orders.form',
+            'user.orders.create',
             $this->formData($user, [], []),
             'layouts.app',
         );
@@ -49,10 +49,10 @@ final class OrderController
         try {
             $this->orders->place($user, $orderRequest);
 
-            return Response::redirect('/');
+            return Response::redirect('/?ordered=1');
         } catch (InvalidArgumentException | RuntimeException $exception) {
             return View::render(
-                'user.orders.form',
+                'user.orders.create',
                 $this->formData(
                     $user,
                     [$exception->getMessage()],
