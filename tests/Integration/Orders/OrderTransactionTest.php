@@ -57,7 +57,9 @@ final class OrderTransactionTest extends TestCase
                     'price' => (string) $product['price'],
                 ],
             ]),
-            new FailingPdoOrderCommandRepository($pdo),
+            new FailingOrderCommandRepository(
+                new PdoOrderCommandRepository($pdo),
+            ),
             new PlaceOrderValidator(),
             $pdo,
         );
@@ -90,10 +92,59 @@ final class OrderTransactionTest extends TestCase
     }
 }
 
-final class FailingPdoOrderCommandRepository extends PdoOrderCommandRepository
+final class FailingOrderCommandRepository implements OrderCommandRepositoryInterface
 {
+    public function __construct(
+        private readonly PdoOrderCommandRepository $inner,
+    ) {
+    }
+
+    public function insertOrder(
+        int $userId,
+        int $createdByUserId,
+        int $roomId,
+        ?string $notes,
+        string $totalAmount,
+    ): int {
+        return $this->inner->insertOrder(
+            $userId,
+            $createdByUserId,
+            $roomId,
+            $notes,
+            $totalAmount,
+        );
+    }
+
     public function insertItems(int $orderId, array $items): void
     {
         throw new RuntimeException('Simulated item insert failure');
+    }
+
+    public function cancelIfProcessing(
+        int $orderId,
+        int $changedByUserId,
+        \DateTimeImmutable $cancelledAt,
+    ): bool {
+        return $this->inner->cancelIfProcessing(
+            $orderId,
+            $changedByUserId,
+            $cancelledAt,
+        );
+    }
+
+    public function transitionIfCurrent(
+        int $orderId,
+        string $fromStatus,
+        string $toStatus,
+        int $changedByUserId,
+        \DateTimeImmutable $changedAt,
+    ): bool {
+        return $this->inner->transitionIfCurrent(
+            $orderId,
+            $fromStatus,
+            $toStatus,
+            $changedByUserId,
+            $changedAt,
+        );
     }
 }
