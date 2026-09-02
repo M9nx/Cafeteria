@@ -6,12 +6,15 @@ namespace Cafeteria\DTO;
 
 final readonly class CreateProductRequest
 {
+    /**
+     * @param array<string, mixed>|null $image
+     */
     public function __construct(
         public string $name,
         public int $categoryId,
         public string $price,
         public bool $isAvailable,
-        public ?string $imagePath = null,
+        public ?array $image = null,
     ) {
     }
 }
