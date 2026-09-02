@@ -9,6 +9,9 @@ use Cafeteria\Controllers\Auth\LoginController;
 use Cafeteria\Controllers\Auth\LogoutController;
 use Cafeteria\Controllers\Auth\ResetPasswordController;
 use Cafeteria\Controllers\HealthController;
+use Cafeteria\Controllers\Admin\ProductController;
+use Cafeteria\Controllers\User\OrderController;
+use Cafeteria\Controllers\User\CatalogController;
 use Cafeteria\Core\Auth\AdminMiddleware;
 use Cafeteria\Core\Auth\AuthMiddleware;
 use Cafeteria\Core\Auth\AuthenticatedUser;
@@ -27,14 +30,21 @@ use Cafeteria\Repositories\Pdo\PdoAdminUserRepository;
 use Cafeteria\Repositories\Pdo\PdoAuthUserRepository;
 use Cafeteria\Repositories\Pdo\PdoCategoryRepository;
 use Cafeteria\Repositories\Pdo\PdoPasswordResetTokenRepository;
+use Cafeteria\Repositories\Pdo\PdoOrderCommandRepository;
+use Cafeteria\Repositories\Pdo\PdoOrderQueryRepository;
+use Cafeteria\Repositories\Pdo\PdoProductRepository;
 use Cafeteria\Services\AuthService;
 use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\UserService;
+use Cafeteria\Services\OrderService;
+use Cafeteria\Services\ProductService;
 use Cafeteria\Validation\CategoryValidator;
 use Cafeteria\Validation\LoginValidator;
 use Cafeteria\Validation\PasswordResetValidator;
 use Cafeteria\Validation\UserValidator;
+use Cafeteria\Validation\PlaceOrderValidator;
+use Cafeteria\Validation\ProductValidator;
 
 require __DIR__ . '/autoload.php';
 
@@ -69,14 +79,20 @@ $pdo = (new ConnectionFactory())->make($databaseConfig);
 $authUsers = new PdoAuthUserRepository($pdo);
 $resetTokens = new PdoPasswordResetTokenRepository($pdo);
 $categoryRepository = new PdoCategoryRepository($pdo);
+$productRepository = new PdoProductRepository($pdo);
+$orderCommandRepository = new PdoOrderCommandRepository($pdo);
+$orderQueryRepository = new PdoOrderQueryRepository($pdo);
 $adminUserRepository = new PdoAdminUserRepository($pdo);
 
 $loginValidator = new LoginValidator();
 $passwordResetValidator = new PasswordResetValidator();
 $categoryValidator = new CategoryValidator();
+$productValidator = new ProductValidator();
+$placeOrderValidator = new PlaceOrderValidator();
 $userValidator = new UserValidator();
 
 $authService = new AuthService($authUsers, $session);
+
 $passwordResetService = new PasswordResetService(
     $authUsers,
     $resetTokens,
@@ -93,7 +109,16 @@ $profileUploadDirectory = dirname(__DIR__)
     . DIRECTORY_SEPARATOR
     . 'profiles';
 
-$uploader = new SafeUploader($profileUploadDirectory);
+$productUploadDirectory = dirname(__DIR__)
+    . DIRECTORY_SEPARATOR
+    . 'storage'
+    . DIRECTORY_SEPARATOR
+    . 'uploads'
+    . DIRECTORY_SEPARATOR
+    . 'products';
+
+$profileUploader = new SafeUploader($profileUploadDirectory);
+$productUploader = new SafeUploader($productUploadDirectory);
 
 $categoryService = new CategoryService(
     $categoryRepository,
@@ -105,7 +130,22 @@ $userService = new UserService(
     $adminUserRepository,
     $userValidator,
     $adminPolicy,
-    $uploader,
+    $profileUploader,
+);
+
+$orderService = new OrderService(
+    $productRepository,
+    $orderCommandRepository,
+    $placeOrderValidator,
+    $pdo,
+);
+
+$productService = new ProductService(
+    $productRepository,
+    $categoryRepository,
+    $productValidator,
+    $adminPolicy,
+    $productUploader,
 );
 
 $controllers = [
@@ -125,14 +165,32 @@ $controllers = [
     ),
     CategoryController::class => new CategoryController($categoryService, $csrf, $flash),
     UserController::class => new UserController($userService, $csrf, $flash),
+    ProductController::class => new ProductController(
+        $productService,
+        $categoryRepository,
+        $csrf,
+        $flash,
+    ),
+    CatalogController::class => new CatalogController(
+        $productRepository,
+        $orderQueryRepository,
+    ),
+    OrderController::class => new OrderController(
+        $orderService,
+        $productRepository,
+        $pdo,
+        $csrf,
+    ),
 ];
 
 $router = new Router();
+
 $router->setControllerFactory(
     static function (string $class) use ($controllers): object {
         return $controllers[$class] ?? new $class();
     }
 );
+
 $router->setCurrentUserResolver(
     static function () use ($session): ?AuthenticatedUser {
         $user = $session->get(AuthMiddleware::SESSION_USER_KEY);
@@ -177,12 +235,17 @@ return [
         'reset_tokens' => $resetTokens,
         'categories' => $categoryRepository,
         'admin_users' => $adminUserRepository,
+        'products' => $productRepository,
+        'orders_command' => $orderCommandRepository,
+        'orders_query' => $orderQueryRepository,
     ],
     'services' => [
         'auth' => $authService,
         'password_reset' => $passwordResetService,
         'categories' => $categoryService,
         'users' => $userService,
+        'products' => $productService,
+        'orders' => $orderService,
     ],
     'router' => $router,
     'request_factory' => static fn (): Request => Request::fromGlobals(),
