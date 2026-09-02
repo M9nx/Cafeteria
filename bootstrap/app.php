@@ -39,11 +39,13 @@ use Cafeteria\Services\AuthService;
 use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\OrderService;
 use Cafeteria\Services\OrderStatusService;
+use Cafeteria\Services\UserOrderQueryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\ProductService;
 use Cafeteria\Services\UserService;
 use Cafeteria\Validation\CategoryValidator;
 use Cafeteria\Validation\LoginValidator;
+use Cafeteria\Validation\OrderHistoryValidator;
 use Cafeteria\Validation\PasswordResetValidator;
 use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
@@ -106,6 +108,18 @@ $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
     $placeOrderValidator,
 );
 $userValidator = new UserValidator();
+
+$appTimezone = new DateTimeZone(
+    (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
+);
+
+$orderHistoryValidator = new OrderHistoryValidator($appTimezone);
+
+$userOrderQueryService = new UserOrderQueryService(
+    $orderQueryRepository,
+    $orderHistoryValidator,
+    $appTimezone,
+);
 
 $authService = new AuthService(
     $authUsers,
@@ -241,6 +255,7 @@ $controllers = [
     OrderController::class => new OrderController(
         $orderService,
         $orderStatusService,
+        $userOrderQueryService,
         $orderQueryRepository,
         $productRepository,
         $orderPolicy,
@@ -334,6 +349,7 @@ return [
         'products' => $productService,
         'orders' => $orderService,
         'order_status' => $orderStatusService,
+        'user_order_queries' => $userOrderQueryService,
     ],
 
     'router' => $router,

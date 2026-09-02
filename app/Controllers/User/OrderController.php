@@ -10,13 +10,14 @@ use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\Core\Session\FlashBag;
 use Cafeteria\Core\View\View;
+use Cafeteria\DTO\OrderHistoryFilter;
 use Cafeteria\DTO\PlaceOrderRequest;
 use Cafeteria\Policies\OrderPolicy;
 use Cafeteria\Repositories\Contracts\OrderQueryRepositoryInterface;
 use Cafeteria\Repositories\Contracts\ProductRepositoryInterface;
 use Cafeteria\Services\OrderService;
 use Cafeteria\Services\OrderStatusService;
-use DateTimeImmutable;
+use Cafeteria\Services\UserOrderQueryService;
 use InvalidArgumentException;
 use PDO;
 use RuntimeException;
@@ -26,6 +27,7 @@ final class OrderController
     public function __construct(
         private readonly OrderService $orders,
         private readonly OrderStatusService $orderStatus,
+        private readonly UserOrderQueryService $userOrderQueries,
         private readonly OrderQueryRepositoryInterface $orderQueries,
         private readonly ProductRepositoryInterface $products,
         private readonly OrderPolicy $orderPolicy,
@@ -39,25 +41,42 @@ final class OrderController
         Request $request,
         AuthenticatedUser $user
     ): Response {
+        $from = (string) $request->input('from', '');
+        $to = (string) $request->input('to', '');
         $page = max(1, (int) $request->input('page', 1));
-        $perPage = max(1, min(50, (int) $request->input('per_page', 15)));
+        $errors = [];
+
+        try {
+            $orders = $this->userOrderQueries->getUserWithOrders(
+                $user->id(),
+                new OrderHistoryFilter(
+                    from: $from !== '' ? $from : null,
+                    to: $to !== '' ? $to : null,
+                    page: $page,
+                ),
+                $user,
+            );
+        } catch (InvalidArgumentException $exception) {
+            $orders = [
+                'items' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => 15,
+            ];
+            $errors = [$exception->getMessage()];
+        }
 
         return View::render(
             'user.orders.index',
             [
                 'title' => 'My orders',
                 'currentUser' => $user,
-                'orders' => $this->orderQueries->paginateForUser(
-                    $user->id(),
-                    $this->parseDate($request->input('from')),
-                    $this->parseDate($request->input('to'), true),
-                    $page,
-                    $perPage,
-                ),
+                'orders' => $orders,
                 'filters' => [
-                    'from' => (string) $request->input('from', ''),
-                    'to' => (string) $request->input('to', ''),
+                    'from' => $from,
+                    'to' => $to,
                 ],
+                'errors' => $errors,
                 'flashMessages' => $this->flash->pullAll(),
             ],
             'layouts.app',
@@ -201,31 +220,6 @@ final class OrderController
         }
 
         return $rooms;
-    }
-
-    private function parseDate(mixed $value, bool $endOfDay = false): ?DateTimeImmutable
-    {
-        if (!is_string($value)) {
-            return null;
-        }
-
-        $value = trim($value);
-
-        if ($value === '') {
-            return null;
-        }
-
-        $date = DateTimeImmutable::createFromFormat('Y-m-d', $value);
-
-        if ($date === false) {
-            return null;
-        }
-
-        if ($endOfDay) {
-            return $date->setTime(23, 59, 59);
-        }
-
-        return $date->setTime(0, 0, 0);
     }
 
     private function verifyCsrf(Request $request): void
