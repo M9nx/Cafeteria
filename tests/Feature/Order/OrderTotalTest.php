@@ -4,64 +4,37 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Order;
 
-use PHPUnit\Framework\TestCase;
+use Tests\Support\FeatureRecordingOrderRepository;
+use Tests\Support\OrderFeatureTestCase;
 
-final class OrderTotalTest extends TestCase
+final class OrderTotalTest extends OrderFeatureTestCase
 {
-    private array $ordersFixture;
-    private array $productsFixture;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->ordersFixture = require __DIR__ . '/../../Fixtures/orders.php';
-        $this->productsFixture = require __DIR__ . '/../../Fixtures/products.php';
-    }
-
     public function test_server_calculates_correct_totals_using_decimal_rules(): void
     {
-        $validCart = $this->ordersFixture['valid_cart'];
-        $items = $validCart['items'] ?? $validCart;
+        $orders = new FeatureRecordingOrderRepository();
+        $service = $this->makeService(orders: $orders);
 
-        // Build product price map
-        $allProducts = array_merge(
-            $this->productsFixture['available'] ?? [],
-            $this->productsFixture['unavailable'] ?? []
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('valid_cart'),
         );
 
-        $priceMap = [];
-        foreach ($allProducts as $product) {
-            $priceMap[$product['id']] = $product['price'];
-        }
-
-        // Calculate line totals and grand total on the server side
-        $calculatedTotal = 0.0;
-        foreach ($items as $item) {
-            $productId = $item['product_id'];
-            $quantity = $item['quantity'];
-            $price = (float) $priceMap[$productId];
-            
-            $lineTotal = $price * $quantity;
-            $calculatedTotal += $lineTotal;
-        }
-
-        // Tea (10.00 * 2) + Coffee (15.00 * 1) = 35.00
-        $this->assertEquals(35.00, $calculatedTotal);
-        $this->assertSame('35.00', number_format($calculatedTotal, 2, '.', ''));
+        self::assertSame('35.00', $orders->lastTotal());
+        self::assertSame('20.00', $orders->lastItems()[0]['line_total']);
+        self::assertSame('15.00', $orders->lastItems()[1]['line_total']);
     }
 
     public function test_server_ignores_posted_total_field(): void
     {
-        $tamperedPayload = $this->ordersFixture['tampered_price_payload'] ?? $this->ordersFixture['tampered_total_cart'] ?? [];
-        $postedTotal = $tamperedPayload['total'] ?? '0.01';
+        $orders = new FeatureRecordingOrderRepository();
+        $service = $this->makeService(orders: $orders);
 
-        $items = $tamperedPayload['items'] ?? [];
-        $productId = $items[0]['product_id'] ?? 1;
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('tampered_total_cart'),
+        );
 
-        // Fetch actual server price for product 1 (Tea = 10.00)
-        $actualServerPrice = '10.00';
-
-        // Assert posted client total differs from recalculation
-        $this->assertNotEquals($postedTotal, $actualServerPrice);
+        self::assertSame('10.00', $orders->lastTotal());
+        self::assertNotSame('0.01', $orders->lastTotal());
     }
 }

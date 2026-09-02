@@ -4,59 +4,33 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Order;
 
-use PHPUnit\Framework\TestCase;
-use Exception;
+use RuntimeException;
+use Tests\Support\FeatureFailingOrderRepository;
+use Tests\Support\OrderFeatureTestCase;
 
-final class OrderTransactionTest extends TestCase
+final class OrderTransactionTest extends OrderFeatureTestCase
 {
-    private array $ordersFixture;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->ordersFixture = require __DIR__ . '/../../Fixtures/orders.php';
-    }
-
     public function test_order_creation_rolls_back_entirely_on_failure(): void
     {
-        $validCart = $this->ordersFixture['valid_cart'];
-        $items = $validCart['items'] ?? $validCart;
-
-        $databaseState = [
-            'orders' => [],
-            'order_items' => [],
-        ];
-
-        // Simulate a transactional operation that fails on item insertion
-        $transactionFailed = false;
+        $pdo = $this->sqliteWithRoom();
+        $orders = new FeatureFailingOrderRepository();
+        $service = $this->makeService(orders: $orders);
 
         try {
-            // Begin transaction
-            $simulatedOrder = ['id' => 101, 'status' => 'PENDING'];
-            $databaseState['orders'][] = $simulatedOrder;
+            $service->place(
+                $this->demoUser(),
+                $this->placeRequestFromFixture('valid_cart'),
+            );
 
-            foreach ($items as $index => $item) {
-                // Simulate database error on second item insertion
-                if ($index === 1) {
-                    throw new Exception('Database constraint failure during item insertion.');
-                }
-
-                $databaseState['order_items'][] = [
-                    'order_id' => 101,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                ];
-            }
-        } catch (Exception $e) {
-            // Rollback transaction state
-            $databaseState['orders'] = [];
-            $databaseState['order_items'] = [];
-            $transactionFailed = true;
+            self::fail('Expected order placement to fail.');
+        } catch (RuntimeException $exception) {
+            self::assertSame(
+                'Simulated item insert failure',
+                $exception->getMessage(),
+            );
         }
 
-        // Assert atomic behavior: failure rolled back both order and items
-        $this->assertTrue($transactionFailed);
-        $this->assertEmpty($databaseState['orders']);
-        $this->assertEmpty($databaseState['order_items']);
+        self::assertFalse($pdo->inTransaction());
+        self::assertSame([], $orders->lastItems());
     }
 }

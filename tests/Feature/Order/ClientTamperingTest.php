@@ -4,40 +4,23 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Order;
 
-use PHPUnit\Framework\TestCase;
+use Tests\Support\FeatureRecordingOrderRepository;
+use Tests\Support\OrderFeatureTestCase;
 
-final class ClientTamperingTest extends TestCase
+final class ClientTamperingTest extends OrderFeatureTestCase
 {
-    private array $ordersFixture;
-    private array $productsFixture;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->ordersFixture = require __DIR__ . '/../../Fixtures/orders.php';
-        $this->productsFixture = require __DIR__ . '/../../Fixtures/products.php';
-    }
-
     public function test_server_overrides_client_side_price_tampering(): void
     {
-        $tamperedCart = $this->ordersFixture['tampered_price_payload'] ?? $this->ordersFixture['valid_cart'];
-        $items = $tamperedCart['items'] ?? $tamperedCart;
+        $orders = new FeatureRecordingOrderRepository();
+        $service = $this->makeService(orders: $orders);
 
-        // Build server-authoritative product catalog
-        $availableProducts = $this->productsFixture['available'] ?? [];
-        $serverCatalog = [];
-        foreach ($availableProducts as $product) {
-            $serverCatalog[$product['id']] = (float) $product['price'];
-        }
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('tampered_price_payload'),
+        );
 
-        foreach ($items as $item) {
-            $productId = $item['product_id'];
-            $clientSubmittedPrice = (float) ($item['price'] ?? 0.01);
-            $authoritativeServerPrice = $serverCatalog[$productId] ?? 0.00;
-
-            // Server must compute totals using authoritative catalog price, ignoring client submission
-            $this->assertNotEquals($clientSubmittedPrice, $authoritativeServerPrice);
-            $this->assertGreaterThan(0.00, $authoritativeServerPrice);
-        }
+        self::assertSame('10.00', $orders->lastTotal());
+        self::assertSame('10.00', $orders->lastItems()[0]['unit_price_snapshot']);
+        self::assertSame('10.00', $orders->lastItems()[0]['line_total']);
     }
 }

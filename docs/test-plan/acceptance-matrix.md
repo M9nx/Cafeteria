@@ -29,14 +29,16 @@ This document defines acceptance tests for the authentication and authorization 
 | AT-ORD-002 | ORD-001 | Given an empty cart or invalid quantity, when an order is submitted, then the placement is rejected. | Order placement fails gracefully. | `PlaceOrderTest` |
 | AT-ORD-003 | ORD-002 | Given items in a cart, when totals are calculated, then the server calculates exact totals using decimal rules and ignores client-submitted total fields. | Server-authoritative calculation matches expected sum. | `OrderTotalTest` |
 | AT-ORD-004 | ORD-003 | Given an order with items, when product price or name changes later in catalog, then historical order item snapshots remain unchanged. | Historic price and name snapshot integrity is maintained. | `OrderSnapshotTest` |
-| AT-ORD-005 | ORD-004 | Given a failure during multi-item order creation, when database write fails, then the entire transaction rolls back. | No partial or orphaned order records exist. | `OrderTransactionTest` |
+| AT-ORD-005 | ORD-004 | Given a failure during multi-item order creation, when database write fails, then the entire transaction rolls back. | No partial or orphaned order records exist. | `OrderTransactionTest`, `Integration/Orders/OrderTransactionTest` |
 | AT-ORD-006 | SEC-001 | Given a tampered client price in the payload, when processed, then server overrides client prices with DB authoritative prices. | Client price manipulation is completely neutralized. | `ClientTamperingTest` |
 
 ## Verification
 
-All listed automated security tests were executed successfully during the security regression work.
+Authentication and authorization tests were executed during the Day 2 security regression work.
 
-The detailed results are documented in:
+Order feature tests in `tests/Feature/Order/` exercise `OrderService` with deterministic fixtures and verify validation, totals, snapshots, tampering resistance, and transaction rollback behavior.
+
+Detailed results are documented in:
 
 - `docs/test-plan/security-regression.md`
 - `docs/test-plan/auth-threat-checklist.md`

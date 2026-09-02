@@ -4,66 +4,76 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Order;
 
-use PHPUnit\Framework\TestCase;
+use InvalidArgumentException;
+use Tests\Support\FeatureRecordingOrderRepository;
+use Tests\Support\OrderFeatureTestCase;
 
-final class PlaceOrderTest extends TestCase
+final class PlaceOrderTest extends OrderFeatureTestCase
 {
-    private array $ordersFixture;
-    private array $productsFixture;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->ordersFixture = require __DIR__ . '/../../Fixtures/orders.php';
-        $this->productsFixture = require __DIR__ . '/../../Fixtures/products.php';
-    }
-
     public function test_can_place_order_with_valid_cart(): void
     {
-        $payload = $this->ordersFixture['valid_cart'];
-        $items = $payload['items'] ?? $payload;
+        $orders = new FeatureRecordingOrderRepository();
+        $service = $this->makeService(orders: $orders);
 
-        $this->assertNotEmpty($items);
-        $this->assertGreaterThanOrEqual(1, count($items));
+        $orderId = $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('valid_cart'),
+        );
+
+        self::assertSame(101, $orderId);
+        self::assertSame('35.00', $orders->lastTotal());
+        self::assertCount(2, $orders->lastItems());
     }
 
     public function test_cannot_place_order_with_empty_cart(): void
     {
-        $payload = $this->ordersFixture['empty_cart'];
-        $items = $payload['items'] ?? $payload;
+        $service = $this->makeService();
 
-        $this->assertEmpty($items);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('at least one item');
+
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('empty_cart'),
+        );
     }
 
     public function test_cannot_place_order_with_invalid_quantity(): void
     {
-        $payload = $this->ordersFixture['invalid_quantity'];
-        $items = $payload['items'] ?? $payload;
+        $service = $this->makeService();
 
-        $this->assertEquals(0, $items[0]['quantity']);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Quantity must be at least 1.');
+
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('invalid_quantity'),
+        );
+    }
+
+    public function test_cannot_place_order_with_negative_quantity(): void
+    {
+        $service = $this->makeService();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Quantity must be at least 1.');
+
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('negative_quantity'),
+        );
     }
 
     public function test_cannot_place_order_with_unavailable_product(): void
     {
-        $payload = $this->ordersFixture['unavailable_product'];
-        $items = $payload['items'] ?? $payload;
-        $unavailableProductId = $items[0]['product_id'];
+        $service = $this->makeService();
 
-        $allProducts = array_merge(
-            $this->productsFixture['available'] ?? [],
-            $this->productsFixture['unavailable'] ?? [],
-            $this->productsFixture['deleted'] ?? []
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('unavailable');
+
+        $service->place(
+            $this->demoUser(),
+            $this->placeRequestFromFixture('unavailable_product'),
         );
-
-        $foundProduct = null;
-        foreach ($allProducts as $product) {
-            if (isset($product['id']) && $product['id'] === $unavailableProductId) {
-                $foundProduct = $product;
-                break;
-            }
-        }
-
-        $this->assertNotNull($foundProduct);
-        $this->assertFalse((bool) ($foundProduct['is_available'] ?? false));
     }
 }
