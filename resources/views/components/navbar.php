@@ -44,7 +44,7 @@ $isAdmin = $isAuthenticated && method_exists($currentUser, 'isAdmin') && $curren
                                 <a class="nav-link" href="/admin/users">Users</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="/admin/reports">Reports</a>
+                                <a class="nav-link" href="/admin/checks">Reports</a>
                             </li>
                         <?php endif; ?>
                     </ul>

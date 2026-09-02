@@ -39,16 +39,23 @@ use Cafeteria\Services\AuthService;
 use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\OrderService;
 use Cafeteria\Services\OrderStatusService;
+use Cafeteria\Services\UserOrderQueryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\ProductService;
 use Cafeteria\Services\UserService;
 use Cafeteria\Validation\CategoryValidator;
 use Cafeteria\Validation\LoginValidator;
+use Cafeteria\Validation\OrderHistoryValidator;
 use Cafeteria\Validation\PasswordResetValidator;
 use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use Cafeteria\Validation\ProductValidator;
 use Cafeteria\Validation\UserValidator;
+use Cafeteria\Controllers\Admin\ReportController;
+use Cafeteria\Repositories\Pdo\PdoReportRepository;
+use Cafeteria\Services\ReportQueryService;
+use Cafeteria\Validation\ChecksFilterValidator;
+use DateTimeZone;
 
 require __DIR__ . '/autoload.php';
 
@@ -95,6 +102,7 @@ $productRepository = new PdoProductRepository($pdo);
 $orderCommandRepository = new PdoOrderCommandRepository($pdo);
 $orderQueryRepository = new PdoOrderQueryRepository($pdo);
 $adminUserRepository = new PdoAdminUserRepository($pdo);
+$reportRepository = new PdoReportRepository($pdo);
 
 $loginValidator = new LoginValidator();
 $passwordResetValidator = new PasswordResetValidator();
@@ -106,6 +114,28 @@ $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
     $placeOrderValidator,
 );
 $userValidator = new UserValidator();
+
+$appTimezone = new DateTimeZone(
+    (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
+);
+
+$checksFilterValidator = new ChecksFilterValidator(
+    $pdo,
+    $appTimezone,
+);
+
+$reportQueryService = new ReportQueryService(
+    $reportRepository,
+    $checksFilterValidator,
+);
+
+$orderHistoryValidator = new OrderHistoryValidator($appTimezone);
+
+$userOrderQueryService = new UserOrderQueryService(
+    $orderQueryRepository,
+    $orderHistoryValidator,
+    $appTimezone,
+);
 
 $authService = new AuthService(
     $authUsers,
@@ -241,6 +271,7 @@ $controllers = [
     OrderController::class => new OrderController(
         $orderService,
         $orderStatusService,
+        $userOrderQueryService,
         $orderQueryRepository,
         $productRepository,
         $orderPolicy,
@@ -254,6 +285,10 @@ $controllers = [
         $orderStatusService,
         $csrf,
         $flash,
+    ),
+
+    ReportController::class => new ReportController(
+        $reportQueryService,
     ),
 ];
 
@@ -324,6 +359,7 @@ return [
         'products' => $productRepository,
         'orders_command' => $orderCommandRepository,
         'orders_query' => $orderQueryRepository,
+        'reports' => $reportRepository,
     ],
 
     'services' => [
@@ -334,6 +370,8 @@ return [
         'products' => $productService,
         'orders' => $orderService,
         'order_status' => $orderStatusService,
+        'user_order_queries' => $userOrderQueryService,
+        'report_queries' => $reportQueryService,
     ],
 
     'router' => $router,

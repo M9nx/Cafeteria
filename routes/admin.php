@@ -10,6 +10,7 @@ use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\ProductController;
 use Cafeteria\Controllers\Admin\UserController;
+use Cafeteria\Controllers\Admin\ReportController;
 
 $router->get(
     '/admin/categories',
@@ -152,5 +153,17 @@ $router->get(
 $router->post(
     '/admin/orders/{id}/status',
     [FulfillmentController::class, 'updateStatus'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/checks',
+    [ReportController::class, 'index'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/reports',
+    [ReportController::class, 'index'],
     [$adminMiddleware]
 );

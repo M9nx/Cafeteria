@@ -26,6 +26,7 @@ $e = static fn (mixed $value): string =>
     <?php
     $flashMessages = $flashMessages ?? null;
     require dirname(__DIR__, 2) . '/components/admin-flash.php';
+    require dirname(__DIR__, 2) . '/components/form-errors.php';
     ?>
 
     <form method="GET" action="/orders" class="row g-3 mb-4">
