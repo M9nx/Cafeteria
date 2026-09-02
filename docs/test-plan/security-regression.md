@@ -7,6 +7,7 @@ This document records the authentication and authorization security regression t
 - Branch: `test/18-auth-security-tests`
 - Test framework: PHPUnit 12
 - PHP: 8.4
+- Database: `cafeteria_test` (migrate + seed before Feature tests)
 - Test scope: Authentication, CSRF protection, authorization, password reset, and order ownership.
 
 ## Automated Regression Results
@@ -32,7 +33,15 @@ This document records the authentication and authorization security regression t
 
 ## Test Commands
 
-The following targeted PHPUnit test classes were executed successfully during this security work:
+Run the full suite after migrating and seeding the test database:
+
+```bash
+composer migrate
+composer seed
+composer test
+```
+
+Targeted auth/security classes:
 
 ```text
 tests/Feature/Auth/LoginTest.php
@@ -42,3 +51,5 @@ tests/Feature/Auth/PasswordResetTest.php
 tests/Feature/Auth/AdminAuthorizationTest.php
 tests/Feature/Auth/OrderOwnershipPolicyTest.php
 tests/Feature/Auth/InactiveUserLoginTest.php
+tests/Unit/Policies/AdminPolicyTest.php
+```

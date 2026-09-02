@@ -21,7 +21,7 @@ This checklist maps the main authentication and authorization security threats t
 |---|---|---|---|
 | Missing CSRF token | CSRF validation | `CsrfProtectionTest` | State-changing request is rejected. |
 | Invalid CSRF token | CSRF validation | `CsrfProtectionTest` | State-changing request is rejected. |
-| Valid CSRF token | CSRF validation | `CsrfProtectionTest` | Legitimate state-changing request is accepted. |
+| Valid CSRF token | CSRF validation | `LoginTest`, `LogoutTest` | Legitimate state-changing request is accepted. |
 
 ## 3. Authorization
 
@@ -36,7 +36,7 @@ This checklist maps the main authentication and authorization security threats t
 
 | Threat / Case | Security Control | Automated Test | Expected Result |
 |---|---|---|---|
-| Unauthenticated access to protected routes | Authentication middleware | `LogoutTest` / auth middleware tests | Guest is redirected to login. |
+| Unauthenticated access to protected routes | Authentication middleware | `AdminAuthorizationTest`, `LogoutTest` | Guest is redirected to login. |
 | Regular user accessing admin routes | Role-based authorization | `AdminAuthorizationTest` | Request is rejected. |
 | Access to another user's resource | Resource ownership validation | `OrderOwnershipPolicyTest` | Unauthorized access is rejected. |
 
