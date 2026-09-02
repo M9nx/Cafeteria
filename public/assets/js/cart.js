@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         orderItems.replaceChildren();
 
         let total = 0;
+        let itemIndex = 0;
 
         cart.forEach((item, productId) => {
             const quantity = Math.max(1, Number(item.quantity));
@@ -97,15 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (orderForm) {
                 const productInput = document.createElement('input');
                 productInput.type = 'hidden';
-                productInput.name = 'items[][product_id]';
+                productInput.name = `items[${itemIndex}][product_id]`;
                 productInput.value = String(productId);
 
                 const quantityInput = document.createElement('input');
                 quantityInput.type = 'hidden';
-                quantityInput.name = 'items[][quantity]';
+                quantityInput.name = `items[${itemIndex}][quantity]`;
                 quantityInput.value = String(quantity);
 
                 body.append(productInput, quantityInput);
+                itemIndex += 1;
             }
 
             wrapper.append(body);

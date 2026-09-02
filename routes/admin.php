@@ -5,6 +5,7 @@
 declare(strict_types=1);
 
 use Cafeteria\Controllers\Admin\CategoryController;
+use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\UserController;
 use Cafeteria\Controllers\Admin\ProductController;
 
@@ -114,5 +115,23 @@ $router->post(
 $router->post(
     '/admin/products/{id}/deactivate',
     [ProductController::class, 'deactivate'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/orders',
+    [FulfillmentController::class, 'current'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/orders/current',
+    [FulfillmentController::class, 'current'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/orders/{id}/status',
+    [FulfillmentController::class, 'updateStatus'],
     [$adminMiddleware]
 );

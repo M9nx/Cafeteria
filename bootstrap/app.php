@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Cafeteria\Controllers\Admin\CategoryController;
+use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\UserController;
 use Cafeteria\Controllers\Auth\ForgotPasswordController;
 use Cafeteria\Controllers\Auth\LoginController;
@@ -38,6 +39,7 @@ use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\UserService;
 use Cafeteria\Services\OrderService;
+use Cafeteria\Services\OrderStatusService;
 use Cafeteria\Services\ProductService;
 use Cafeteria\Validation\CategoryValidator;
 use Cafeteria\Validation\LoginValidator;
@@ -140,6 +142,12 @@ $orderService = new OrderService(
     $pdo,
 );
 
+$orderStatusService = new OrderStatusService(
+    $orderQueryRepository,
+    $orderCommandRepository,
+    $orderPolicy,
+);
+
 $productService = new ProductService(
     $productRepository,
     $categoryRepository,
@@ -177,9 +185,19 @@ $controllers = [
     ),
     OrderController::class => new OrderController(
         $orderService,
+        $orderStatusService,
+        $orderQueryRepository,
         $productRepository,
+        $orderPolicy,
         $pdo,
         $csrf,
+        $flash,
+    ),
+    FulfillmentController::class => new FulfillmentController(
+        $orderQueryRepository,
+        $orderStatusService,
+        $csrf,
+        $flash,
     ),
 ];
 
@@ -246,6 +264,7 @@ return [
         'users' => $userService,
         'products' => $productService,
         'orders' => $orderService,
+        'order_status' => $orderStatusService,
     ],
     'router' => $router,
     'request_factory' => static fn (): Request => Request::fromGlobals(),

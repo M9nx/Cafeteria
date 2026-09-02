@@ -13,6 +13,12 @@ $router->get(
 );
 
 $router->get(
+    '/orders',
+    [OrderController::class, 'index'],
+    [$authMiddleware]
+);
+
+$router->get(
     '/orders/new',
     [OrderController::class, 'create'],
     [$authMiddleware]
@@ -21,5 +27,17 @@ $router->get(
 $router->post(
     '/orders',
     [OrderController::class, 'store'],
+    [$authMiddleware]
+);
+
+$router->get(
+    '/orders/{id}',
+    [OrderController::class, 'show'],
+    [$authMiddleware]
+);
+
+$router->post(
+    '/orders/{id}/cancel',
+    [OrderController::class, 'cancel'],
     [$authMiddleware]
 );
