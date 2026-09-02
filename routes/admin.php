@@ -1,4 +1,6 @@
 <?php
+/** @var \Cafeteria\Core\Routing\Router $router */
+/** @var \Cafeteria\Core\Auth\AdminMiddleware $adminMiddleware */
 
 declare(strict_types=1);
 

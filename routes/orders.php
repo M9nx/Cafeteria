@@ -1,5 +1,6 @@
 <?php
-
+/** @var \Cafeteria\Core\Routing\Router $router */
+/** @var \Cafeteria\Core\Auth\AuthMiddleware $authMiddleware */
 declare(strict_types=1);
 
 use Cafeteria\Controllers\User\CatalogController;
