@@ -25,7 +25,6 @@ final class AdminPolicy
 
     public function canManageProducts(AuthenticatedUser $user): bool
     {
-    return $user->isAdmin();
+        return $user->isAdmin();
     }
-
 }

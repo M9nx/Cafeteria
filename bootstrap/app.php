@@ -109,7 +109,16 @@ $profileUploadDirectory = dirname(__DIR__)
     . DIRECTORY_SEPARATOR
     . 'profiles';
 
-$uploader = new SafeUploader($profileUploadDirectory);
+$productUploadDirectory = dirname(__DIR__)
+    . DIRECTORY_SEPARATOR
+    . 'storage'
+    . DIRECTORY_SEPARATOR
+    . 'uploads'
+    . DIRECTORY_SEPARATOR
+    . 'products';
+
+$profileUploader = new SafeUploader($profileUploadDirectory);
+$productUploader = new SafeUploader($productUploadDirectory);
 
 $categoryService = new CategoryService(
     $categoryRepository,
@@ -121,7 +130,7 @@ $userService = new UserService(
     $adminUserRepository,
     $userValidator,
     $adminPolicy,
-    $uploader,
+    $profileUploader,
 );
 
 $orderService = new OrderService(
@@ -136,7 +145,7 @@ $productService = new ProductService(
     $categoryRepository,
     $productValidator,
     $adminPolicy,
-    $uploader,
+    $productUploader,
 );
 
 $controllers = [
@@ -156,12 +165,22 @@ $controllers = [
     ),
     CategoryController::class => new CategoryController($categoryService, $csrf, $flash),
     UserController::class => new UserController($userService, $csrf, $flash),
-    ProductController::class => new ProductController($productService,$categoryRepository,$csrf, $flash),
+    ProductController::class => new ProductController(
+        $productService,
+        $categoryRepository,
+        $csrf,
+        $flash,
+    ),
     CatalogController::class => new CatalogController(
         $productRepository,
         $orderQueryRepository,
     ),
-    OrderController::class => new OrderController($orderService, $csrf),
+    OrderController::class => new OrderController(
+        $orderService,
+        $productRepository,
+        $pdo,
+        $csrf,
+    ),
 ];
 
 $router = new Router();

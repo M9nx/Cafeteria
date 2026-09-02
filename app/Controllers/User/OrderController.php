@@ -8,15 +8,20 @@ use Cafeteria\Core\Auth\AuthenticatedUser;
 use Cafeteria\Core\Auth\CsrfTokenManager;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
+use Cafeteria\Core\View\View;
 use Cafeteria\DTO\PlaceOrderRequest;
+use Cafeteria\Repositories\Contracts\ProductRepositoryInterface;
 use Cafeteria\Services\OrderService;
 use InvalidArgumentException;
+use PDO;
 use RuntimeException;
 
 final class OrderController
 {
     public function __construct(
         private readonly OrderService $orders,
+        private readonly ProductRepositoryInterface $products,
+        private readonly PDO $pdo,
         private readonly CsrfTokenManager $csrf,
     ) {
     }
@@ -25,12 +30,10 @@ final class OrderController
         Request $request,
         AuthenticatedUser $user
     ): Response {
-        return Response::html(
-            $this->render('user/orders/form.php', [
-                'csrfToken' => $this->csrf->token(),
-                'errors' => [],
-                'old' => [],
-            ])
+        return View::render(
+            'user.orders.form',
+            $this->formData($user, [], []),
+            'layouts.app',
         );
     }
 
@@ -48,39 +51,73 @@ final class OrderController
 
             return Response::redirect('/');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('user/orders/form.php', [
-                    'csrfToken' => $this->csrf->token(),
-                    'errors' => [$exception->getMessage()],
-                    'old' => $data,
-                ]),
-                422
+            return View::render(
+                'user.orders.form',
+                $this->formData(
+                    $user,
+                    [$exception->getMessage()],
+                    $data,
+                ),
+                'layouts.app',
             );
         }
+    }
+
+    /**
+     * @param list<string> $errors
+     * @param array<string, mixed> $old
+     *
+     * @return array<string, mixed>
+     */
+    private function formData(
+        AuthenticatedUser $user,
+        array $errors,
+        array $old,
+    ): array {
+        return [
+            'title' => 'New order',
+            'currentUser' => $user,
+            'products' => $this->products->paginateAvailable(1, 100),
+            'rooms' => $this->listActiveRooms(),
+            'errors' => $errors,
+            'old' => $old,
+        ];
+    }
+
+    /**
+     * @return list<array{id: int, name: string}>
+     */
+    private function listActiveRooms(): array
+    {
+        $statement = $this->pdo->query(
+            'SELECT id, name
+             FROM rooms
+             WHERE is_active = 1
+             ORDER BY name ASC, id ASC'
+        );
+
+        if ($statement === false) {
+            return [];
+        }
+
+        $rooms = [];
+
+        foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $rooms[] = [
+                'id' => (int) $row['id'],
+                'name' => (string) $row['name'],
+            ];
+        }
+
+        return $rooms;
     }
 
     private function verifyCsrf(Request $request): void
     {
         $token = $request->input(CsrfTokenManager::FIELD_NAME);
 
-        if (!$this->csrf->validate($token)) {
+        if (!$this->csrf->validate(is_string($token) ? $token : null)) {
             throw new RuntimeException('Invalid CSRF token.');
         }
-    }
-
-    private function render(string $template, array $data = []): string
-    {
-        $path = dirname(__DIR__, 3) . '/resources/views/' . $template;
-
-        if (!is_file($path)) {
-            throw new RuntimeException("View template not found: {$template}");
-        }
-
-        extract($data, EXTR_SKIP);
-
-        ob_start();
-        require $path;
-
-        return (string) ob_get_clean();
     }
 }

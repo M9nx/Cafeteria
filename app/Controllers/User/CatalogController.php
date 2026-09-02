@@ -38,6 +38,8 @@ final class CatalogController
         return View::render(
             'user.catalog',
             [
+                'title' => 'Catalogue',
+                'currentUser' => $user,
                 'products' => $products,
                 'latestOrder' => $latestOrder,
             ],

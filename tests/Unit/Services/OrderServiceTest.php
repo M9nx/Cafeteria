@@ -152,14 +152,14 @@ final class FakeProductRepository implements ProductRepositoryInterface
     }
 
     public function paginateAvailable(int $page = 1, int $perPage = 15): array
-{
-    return [
-        'items' => [],
-        'total' => 0,
-        'page' => $page,
-        'per_page' => $perPage,
-    ];
-}
+    {
+        return [
+            'items' => [],
+            'total' => 0,
+            'page' => $page,
+            'per_page' => $perPage,
+        ];
+    }
 
     public function findById(int $id): ?array
     {

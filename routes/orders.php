@@ -13,7 +13,7 @@ $router->get(
 );
 
 $router->get(
-    '/orders/create',
+    '/orders/new',
     [OrderController::class, 'create'],
     [$authMiddleware]
 );
