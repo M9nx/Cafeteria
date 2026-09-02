@@ -56,4 +56,43 @@ final class OrderPolicyTest extends TestCase
             $this->policy->canCancelOrder($user, 5, 'DONE')
         );
     }
+
+    public function test_admin_can_transition_processing_to_out_for_delivery(): void
+    {
+        $admin = new AuthenticatedUser(1, 'admin@example.test', 'Admin', Role::Admin);
+
+        self::assertTrue(
+            $this->policy->canTransitionOrder(
+                $admin,
+                'PROCESSING',
+                'OUT_FOR_DELIVERY',
+            )
+        );
+    }
+
+    public function test_user_cannot_transition_order_status(): void
+    {
+        $user = new AuthenticatedUser(5, 'user@example.test', 'User', Role::User);
+
+        self::assertFalse(
+            $this->policy->canTransitionOrder(
+                $user,
+                'PROCESSING',
+                'OUT_FOR_DELIVERY',
+            )
+        );
+    }
+
+    public function test_admin_cannot_apply_invalid_transition(): void
+    {
+        $admin = new AuthenticatedUser(1, 'admin@example.test', 'Admin', Role::Admin);
+
+        self::assertFalse(
+            $this->policy->canTransitionOrder(
+                $admin,
+                'PROCESSING',
+                'DONE',
+            )
+        );
+    }
 }

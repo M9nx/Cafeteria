@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cafeteria\Policies;
 
 use Cafeteria\Core\Auth\AuthenticatedUser;
+use Cafeteria\Domain\Orders\OrderTransitionMatrix;
 
 final class OrderPolicy
 {
@@ -27,5 +28,20 @@ final class OrderPolicy
         }
 
         return $this->canViewOrder($user, $orderUserId);
+    }
+
+    public function canTransitionOrder(
+        AuthenticatedUser $user,
+        string $currentStatus,
+        string $nextStatus,
+    ): bool {
+        if (!$user->isAdmin()) {
+            return false;
+        }
+
+        return OrderTransitionMatrix::canTransition(
+            $currentStatus,
+            $nextStatus,
+        );
     }
 }
