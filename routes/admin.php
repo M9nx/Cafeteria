@@ -161,3 +161,9 @@ $router->get(
     [ReportController::class, 'index'],
     [$adminMiddleware]
 );
+
+$router->get(
+    '/admin/reports',
+    [ReportController::class, 'index'],
+    [$adminMiddleware]
+);
