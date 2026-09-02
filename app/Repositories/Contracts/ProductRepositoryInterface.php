@@ -12,6 +12,19 @@ interface ProductRepositoryInterface
     public function paginate(int $page = 1, int $perPage = 15): array;
 
     /**
+    * @return array{
+    *     items: list<array<string, mixed>>,
+    *     total: int,
+    *     page: int,
+    *     per_page: int
+    * }
+    */
+   public function paginateAvailable(
+       int $page = 1,
+       int $perPage = 15
+   ): array;
+
+    /**
      * @return array<string, mixed>|null
      */
     public function findById(int $id): ?array;

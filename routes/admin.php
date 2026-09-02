@@ -1,9 +1,12 @@
 <?php
+/** @var \Cafeteria\Core\Routing\Router $router */
+/** @var \Cafeteria\Core\Auth\AdminMiddleware $adminMiddleware */
 
 declare(strict_types=1);
 
 use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\UserController;
+use Cafeteria\Controllers\Admin\ProductController;
 
 $router->get(
     '/admin/categories',
@@ -75,5 +78,41 @@ $router->post(
 $router->post(
     '/admin/users/{id}/deactivate',
     [UserController::class, 'deactivate'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/products',
+    [ProductController::class, 'index'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/products/create',
+    [ProductController::class, 'create'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/products',
+    [ProductController::class, 'store'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/products/{id}/edit',
+    [ProductController::class, 'edit'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/products/{id}/update',
+    [ProductController::class, 'update'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/products/{id}/deactivate',
+    [ProductController::class, 'deactivate'],
     [$adminMiddleware]
 );
