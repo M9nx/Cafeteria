@@ -7,12 +7,15 @@ namespace Cafeteria\Validation;
 use Cafeteria\DTO\ChecksFilter;
 use DateTimeImmutable;
 use DateTimeZone;
+use PDO;
 
 final class ChecksFilterValidator
 {
     public function __construct(
+        private readonly PDO $pdo,
         private readonly DateTimeZone $timezone,
-    ) {}
+    ) {
+    }
 
     /** @return array<string, string> */
     public function validate(ChecksFilter $filter): array
@@ -21,16 +24,18 @@ final class ChecksFilterValidator
 
         if ($filter->userId !== null && $filter->userId < 1) {
             $errors['user_id'] = 'User ID must be valid.';
+        } elseif ($filter->userId !== null && !$this->userExists($filter->userId)) {
+            $errors['user_id'] = 'The selected user does not exist.';
         }
 
         $from = $this->parseDate($filter->from);
         $to = $this->parseDate($filter->to);
 
-        if ($filter->from !== null && $from === null) {
+        if ($filter->from !== null && $filter->from !== '' && $from === null) {
             $errors['from'] = 'From date must be in YYYY-MM-DD format.';
         }
 
-        if ($filter->to !== null && $to === null) {
+        if ($filter->to !== null && $filter->to !== '' && $to === null) {
             $errors['to'] = 'To date must be in YYYY-MM-DD format.';
         }
 
@@ -39,6 +44,22 @@ final class ChecksFilterValidator
         }
 
         return $errors;
+    }
+
+    private function userExists(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id
+             FROM users
+             WHERE id = :id
+             LIMIT 1'
+        );
+
+        $statement->execute([
+            'id' => $userId,
+        ]);
+
+        return $statement->fetchColumn() !== false;
     }
 
     private function parseDate(?string $value): ?DateTimeImmutable
@@ -50,7 +71,7 @@ final class ChecksFilterValidator
         $date = DateTimeImmutable::createFromFormat(
             '!Y-m-d',
             trim($value),
-            $this->timezone
+            $this->timezone,
         );
 
         $errors = DateTimeImmutable::getLastErrors();

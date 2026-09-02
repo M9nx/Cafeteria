@@ -114,18 +114,19 @@ $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
     $placeOrderValidator,
 );
 $userValidator = new UserValidator();
+
+$appTimezone = new DateTimeZone(
+    (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
+);
+
 $checksFilterValidator = new ChecksFilterValidator(
-    new DateTimeZone('UTC')
+    $pdo,
+    $appTimezone,
 );
 
 $reportQueryService = new ReportQueryService(
     $reportRepository,
     $checksFilterValidator,
-);
-
-
-$appTimezone = new DateTimeZone(
-    (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
 );
 
 $orderHistoryValidator = new OrderHistoryValidator($appTimezone);
@@ -287,7 +288,7 @@ $controllers = [
     ),
 
     ReportController::class => new ReportController(
-    $reportQueryService,
+        $reportQueryService,
     ),
 ];
 
@@ -358,6 +359,7 @@ return [
         'products' => $productRepository,
         'orders_command' => $orderCommandRepository,
         'orders_query' => $orderQueryRepository,
+        'reports' => $reportRepository,
     ],
 
     'services' => [
@@ -369,6 +371,7 @@ return [
         'orders' => $orderService,
         'order_status' => $orderStatusService,
         'user_order_queries' => $userOrderQueryService,
+        'report_queries' => $reportQueryService,
     ],
 
     'router' => $router,
