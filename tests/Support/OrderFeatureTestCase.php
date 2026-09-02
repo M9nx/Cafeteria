@@ -10,6 +10,7 @@ use Cafeteria\DTO\PlaceOrderRequest;
 use Cafeteria\Repositories\Contracts\OrderCommandRepositoryInterface;
 use Cafeteria\Repositories\Contracts\ProductRepositoryInterface;
 use Cafeteria\Services\OrderService;
+use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use PDO;
 use PHPUnit\Framework\TestCase;
@@ -67,11 +68,17 @@ abstract class OrderFeatureTestCase extends TestCase
         ?ProductRepositoryInterface $products = null,
         ?OrderCommandRepositoryInterface $orders = null,
     ): OrderService {
+        $pdo = $this->sqliteWithRoom();
+
         return new OrderService(
             $products ?? new FeatureFakeProductRepository($this->availableCatalogProducts()),
             $orders ?? new FeatureRecordingOrderRepository(),
             new PlaceOrderValidator(),
-            $this->sqliteWithRoom(),
+            new PlaceOrderOnBehalfValidator(
+                $pdo,
+                new PlaceOrderValidator(),
+            ),
+            $pdo,
         );
     }
 
