@@ -21,6 +21,17 @@ This document defines acceptance tests for the authentication and authorization 
 | AT-ADMIN-005 | AUTHZ-003 | Given an admin, when the admin accesses another user's order, then access is allowed. | Admin can access the selected user's order. | `OrderOwnershipPolicyTest` |
 | AT-ADMIN-006 | HIST-004 | Given an order that is not in `PROCESSING` status, when cancellation is requested, then cancellation is denied. | Order status remains unchanged. | `OrderOwnershipPolicyTest` |
 
+## Order Processing Acceptance Tests (Issue #31)
+
+| Test ID | Requirement ID | Scenario | Expected Result | Automated Test |
+|---|---|---|---|---|
+| AT-ORD-001 | ORD-001 | Given a valid shopping cart payload, when an order is placed, then the order is processed successfully. | Order is created with valid status and items. | `PlaceOrderTest` |
+| AT-ORD-002 | ORD-001 | Given an empty cart or invalid quantity, when an order is submitted, then the placement is rejected. | Order placement fails gracefully. | `PlaceOrderTest` |
+| AT-ORD-003 | ORD-002 | Given items in a cart, when totals are calculated, then the server calculates exact totals using decimal rules and ignores client-submitted total fields. | Server-authoritative calculation matches expected sum. | `OrderTotalTest` |
+| AT-ORD-004 | ORD-003 | Given an order with items, when product price or name changes later in catalog, then historical order item snapshots remain unchanged. | Historic price and name snapshot integrity is maintained. | `OrderSnapshotTest` |
+| AT-ORD-005 | ORD-004 | Given a failure during multi-item order creation, when database write fails, then the entire transaction rolls back. | No partial or orphaned order records exist. | `OrderTransactionTest` |
+| AT-ORD-006 | SEC-001 | Given a tampered client price in the payload, when processed, then server overrides client prices with DB authoritative prices. | Client price manipulation is completely neutralized. | `ClientTamperingTest` |
+
 ## Verification
 
 All listed automated security tests were executed successfully during the security regression work.
