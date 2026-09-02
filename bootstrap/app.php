@@ -11,6 +11,7 @@ use Cafeteria\Controllers\Auth\ResetPasswordController;
 use Cafeteria\Controllers\HealthController;
 use Cafeteria\Controllers\Admin\ProductController;
 use Cafeteria\Controllers\User\OrderController;
+use Cafeteria\Controllers\User\CatalogController;
 use Cafeteria\Core\Auth\AdminMiddleware;
 use Cafeteria\Core\Auth\AuthMiddleware;
 use Cafeteria\Core\Auth\AuthenticatedUser;
@@ -156,6 +157,10 @@ $controllers = [
     CategoryController::class => new CategoryController($categoryService, $csrf, $flash),
     UserController::class => new UserController($userService, $csrf, $flash),
     ProductController::class => new ProductController($productService,$categoryRepository,$csrf, $flash),
+    CatalogController::class => new CatalogController(
+        $productRepository,
+        $orderQueryRepository,
+    ),
     OrderController::class => new OrderController($orderService, $csrf),
 ];
 
