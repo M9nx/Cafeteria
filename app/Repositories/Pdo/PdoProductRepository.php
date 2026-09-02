@@ -72,6 +72,55 @@ final class PdoProductRepository implements ProductRepositoryInterface
         ];
     }
 
+    public function paginateAvailable(
+    int $page = 1,
+    int $perPage = 15
+): array {
+    $page = max(1, $page);
+    $perPage = max(1, $perPage);
+
+    $countStmt = $this->pdo->prepare(
+        'SELECT COUNT(*)
+         FROM products
+         WHERE is_available = 1
+           AND deleted_at IS NULL'
+    );
+    $countStmt->execute();
+
+    $total = (int) $countStmt->fetchColumn();
+
+    $offset = ($page - 1) * $perPage;
+
+    $stmt = $this->pdo->prepare(
+        'SELECT
+            p.id,
+            p.category_id,
+            c.name AS category_name,
+            p.name,
+            p.price,
+            p.image_path,
+            p.is_available
+         FROM products p
+         INNER JOIN categories c
+             ON c.id = p.category_id
+         WHERE p.is_available = 1
+           AND p.deleted_at IS NULL
+         ORDER BY p.name ASC, p.id ASC
+         LIMIT :limit OFFSET :offset'
+    );
+
+    $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return [
+        'items' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+        'total' => $total,
+        'page' => $page,
+        'per_page' => $perPage,
+    ];
+}
+
     /**
      * @return array<string, mixed>|null
      */
