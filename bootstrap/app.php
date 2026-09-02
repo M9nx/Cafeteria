@@ -51,6 +51,11 @@ use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use Cafeteria\Validation\ProductValidator;
 use Cafeteria\Validation\UserValidator;
+use Cafeteria\Controllers\Admin\ReportController;
+use Cafeteria\Repositories\Pdo\PdoReportRepository;
+use Cafeteria\Services\ReportQueryService;
+use Cafeteria\Validation\ChecksFilterValidator;
+use DateTimeZone;
 
 require __DIR__ . '/autoload.php';
 
@@ -97,6 +102,7 @@ $productRepository = new PdoProductRepository($pdo);
 $orderCommandRepository = new PdoOrderCommandRepository($pdo);
 $orderQueryRepository = new PdoOrderQueryRepository($pdo);
 $adminUserRepository = new PdoAdminUserRepository($pdo);
+$reportRepository = new PdoReportRepository($pdo);
 
 $loginValidator = new LoginValidator();
 $passwordResetValidator = new PasswordResetValidator();
@@ -108,6 +114,15 @@ $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
     $placeOrderValidator,
 );
 $userValidator = new UserValidator();
+$checksFilterValidator = new ChecksFilterValidator(
+    new DateTimeZone('UTC')
+);
+
+$reportQueryService = new ReportQueryService(
+    $reportRepository,
+    $checksFilterValidator,
+);
+
 
 $appTimezone = new DateTimeZone(
     (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
@@ -269,6 +284,10 @@ $controllers = [
         $orderStatusService,
         $csrf,
         $flash,
+    ),
+
+    ReportController::class => new ReportController(
+    $reportQueryService,
     ),
 ];
 
