@@ -12,6 +12,7 @@ use Cafeteria\DTO\PlaceOrderRequest;
 use Cafeteria\Repositories\Contracts\OrderCommandRepositoryInterface;
 use Cafeteria\Repositories\Pdo\PdoOrderCommandRepository;
 use Cafeteria\Services\OrderService;
+use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -61,6 +62,10 @@ final class OrderTransactionTest extends TestCase
                 new PdoOrderCommandRepository($pdo),
             ),
             new PlaceOrderValidator(),
+            new PlaceOrderOnBehalfValidator(
+                $pdo,
+                new PlaceOrderValidator(),
+            ),
             $pdo,
         );
 

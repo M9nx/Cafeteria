@@ -7,10 +7,12 @@ namespace Tests\Unit\Services;
 use Cafeteria\Core\Auth\AuthenticatedUser;
 use Cafeteria\Domain\Users\Role;
 use Cafeteria\DTO\OrderItemInput;
+use Cafeteria\DTO\PlaceOrderOnBehalfRequest;
 use Cafeteria\DTO\PlaceOrderRequest;
 use Cafeteria\Repositories\Contracts\OrderCommandRepositoryInterface;
 use Cafeteria\Repositories\Contracts\ProductRepositoryInterface;
 use Cafeteria\Services\OrderService;
+use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use InvalidArgumentException;
 use PDO;
@@ -27,12 +29,7 @@ final class OrderServiceTest extends TestCase
             2 => ['name' => 'Coffee', 'price' => '15.00'],
         ]);
         $orders = new RecordingOrderCommandRepository();
-        $service = new OrderService(
-            $products,
-            $orders,
-            new PlaceOrderValidator(),
-            $pdo,
-        );
+        $service = $this->makeService($products, $orders, $pdo);
 
         $orderId = $service->place(
             $this->user(),
@@ -61,12 +58,7 @@ final class OrderServiceTest extends TestCase
             1 => ['name' => 'Tea', 'price' => '10.00'],
         ]);
         $orders = new RecordingOrderCommandRepository();
-        $service = new OrderService(
-            $products,
-            $orders,
-            new PlaceOrderValidator(),
-            $pdo,
-        );
+        $service = $this->makeService($products, $orders, $pdo);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('unavailable');
@@ -88,12 +80,7 @@ final class OrderServiceTest extends TestCase
             1 => ['name' => 'Tea', 'price' => '10.00'],
         ]);
         $orders = new FailingOrderCommandRepository();
-        $service = new OrderService(
-            $products,
-            $orders,
-            new PlaceOrderValidator(),
-            $pdo,
-        );
+        $service = $this->makeService($products, $orders, $pdo);
 
         try {
             $service->place(
@@ -116,11 +103,102 @@ final class OrderServiceTest extends TestCase
         self::assertFalse($pdo->inTransaction());
     }
 
+    public function test_place_on_behalf_records_customer_and_creator_separately(): void
+    {
+        $pdo = $this->sqliteWithOrderFixtures();
+        $products = new FakeProductRepository([
+            1 => ['name' => 'Tea', 'price' => '10.00'],
+        ]);
+        $orders = new RecordingOrderCommandRepository();
+        $service = $this->makeService($products, $orders, $pdo);
+
+        $orderId = $service->placeOnBehalf(
+            $this->admin(),
+            new PlaceOrderOnBehalfRequest(
+                userId: 5,
+                roomId: 1,
+                notes: 'Front desk',
+                items: [new OrderItemInput(1, 1)],
+            ),
+        );
+
+        self::assertSame(42, $orderId);
+        self::assertSame(5, $orders->lastUserId());
+        self::assertSame(1, $orders->lastCreatedByUserId());
+        self::assertSame('10.00', $orders->lastTotal());
+    }
+
+    public function test_place_on_behalf_rejects_non_admin(): void
+    {
+        $pdo = $this->sqliteWithOrderFixtures();
+        $service = $this->makeService(
+            new FakeProductRepository([
+                1 => ['name' => 'Tea', 'price' => '10.00'],
+            ]),
+            new RecordingOrderCommandRepository(),
+            $pdo,
+        );
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Only administrators');
+
+        $service->placeOnBehalf(
+            $this->user(),
+            new PlaceOrderOnBehalfRequest(
+                userId: 5,
+                roomId: 1,
+                notes: null,
+                items: [new OrderItemInput(1, 1)],
+            ),
+        );
+    }
+
+    private function makeService(
+        ProductRepositoryInterface $products,
+        OrderCommandRepositoryInterface $orders,
+        PDO $pdo,
+    ): OrderService {
+        return new OrderService(
+            $products,
+            $orders,
+            new PlaceOrderValidator(),
+            new PlaceOrderOnBehalfValidator(
+                $pdo,
+                new PlaceOrderValidator(),
+            ),
+            $pdo,
+        );
+    }
+
     private function sqliteWithRoom(): PDO
     {
         $pdo = new PDO('sqlite::memory:');
         $pdo->exec('CREATE TABLE rooms (id INTEGER PRIMARY KEY)');
         $pdo->exec('INSERT INTO rooms (id) VALUES (1)');
+
+        return $pdo;
+    }
+
+    private function sqliteWithOrderFixtures(): PDO
+    {
+        $pdo = new PDO('sqlite::memory:');
+        $pdo->exec(
+            'CREATE TABLE rooms (
+                id INTEGER PRIMARY KEY,
+                is_active INTEGER NOT NULL DEFAULT 1
+            )'
+        );
+        $pdo->exec(
+            'CREATE TABLE users (
+                id INTEGER PRIMARY KEY,
+                role TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1
+            )'
+        );
+        $pdo->exec('INSERT INTO rooms (id, is_active) VALUES (1, 1)');
+        $pdo->exec(
+            "INSERT INTO users (id, role, is_active) VALUES (5, 'USER', 1)"
+        );
 
         return $pdo;
     }
@@ -132,6 +210,16 @@ final class OrderServiceTest extends TestCase
             'user@example.test',
             'Demo User',
             Role::User,
+        );
+    }
+
+    private function admin(): AuthenticatedUser
+    {
+        return new AuthenticatedUser(
+            1,
+            'admin@example.test',
+            'Demo Admin',
+            Role::Admin,
         );
     }
 }
@@ -199,6 +287,10 @@ class RecordingOrderCommandRepository implements OrderCommandRepositoryInterface
 {
     private ?string $lastTotal = null;
 
+    private ?int $lastUserId = null;
+
+    private ?int $lastCreatedByUserId = null;
+
     /** @var list<array<string, mixed>> */
     private array $lastItems = [];
 
@@ -209,6 +301,8 @@ class RecordingOrderCommandRepository implements OrderCommandRepositoryInterface
         ?string $notes,
         string $totalAmount,
     ): int {
+        $this->lastUserId = $userId;
+        $this->lastCreatedByUserId = $createdByUserId;
         $this->lastTotal = $totalAmount;
 
         return 42;
@@ -240,6 +334,16 @@ class RecordingOrderCommandRepository implements OrderCommandRepositoryInterface
     public function lastTotal(): ?string
     {
         return $this->lastTotal;
+    }
+
+    public function lastUserId(): ?int
+    {
+        return $this->lastUserId;
+    }
+
+    public function lastCreatedByUserId(): ?int
+    {
+        return $this->lastCreatedByUserId;
     }
 
     /**
