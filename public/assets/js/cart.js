@@ -1,22 +1,38 @@
 'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const orderForm = document.getElementById('order-form');
-    const orderItems = document.getElementById('order-items');
-    const orderTotal = document.getElementById('order-total');
+const CART_STORAGE_KEY = 'cafeteria.cart';
 
-    if (!orderForm || !orderItems || !orderTotal) {
+document.addEventListener('DOMContentLoaded', () => {
+    if (new URLSearchParams(window.location.search).get('ordered') === '1') {
+        sessionStorage.removeItem(CART_STORAGE_KEY);
+    }
+
+    const orderForm = document.getElementById('order-form');
+    const orderItems = document.getElementById('order-items')
+        ?? document.getElementById('cart-items');
+    const orderTotal = document.getElementById('order-total')
+        ?? document.getElementById('cart-total');
+
+    if (!orderItems || !orderTotal) {
         return;
     }
 
-    const cart = new Map();
+    const cart = loadCart();
 
-    const formatMoney = (value) => {
-        return Number(value).toFixed(2);
+    const formatMoney = (value) => Number(value).toFixed(2);
+
+    const saveCart = () => {
+        const payload = {};
+
+        cart.forEach((item, productId) => {
+            payload[String(productId)] = item;
+        });
+
+        sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
     };
 
     const renderCart = () => {
-        orderItems.innerHTML = '';
+        orderItems.replaceChildren();
 
         let total = 0;
 
@@ -30,74 +46,81 @@ document.addEventListener('DOMContentLoaded', () => {
             const wrapper = document.createElement('div');
             wrapper.className = 'card mb-3';
 
-            wrapper.innerHTML = `
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div>
-                            <h2 class="h6 mb-1">${item.name}</h2>
-                            <p class="text-muted small mb-2">
-                                ${formatMoney(price)}
-                            </p>
-                        </div>
+            const body = document.createElement('div');
+            body.className = 'card-body';
 
-                        <strong>
-                            ${formatMoney(lineTotal)}
-                        </strong>
-                    </div>
+            const header = document.createElement('div');
+            header.className = 'd-flex justify-content-between align-items-start gap-3';
 
-                    <div class="d-flex align-items-center gap-2 mt-3">
-                        <button
-                            type="button"
-                            class="btn btn-outline-secondary quantity-decrease"
-                            data-product-id="${productId}"
-                            aria-label="Decrease ${item.name} quantity"
-                        >
-                            −
-                        </button>
+            const details = document.createElement('div');
+            const title = document.createElement('h2');
+            title.className = 'h6 mb-1';
+            title.textContent = item.name;
 
-                        <span
-                            class="px-2"
-                            aria-label="Quantity"
-                        >
-                            ${quantity}
-                        </span>
+            const unitPrice = document.createElement('p');
+            unitPrice.className = 'text-muted small mb-2';
+            unitPrice.textContent = formatMoney(price);
 
-                        <button
-                            type="button"
-                            class="btn btn-outline-secondary quantity-increase"
-                            data-product-id="${productId}"
-                            aria-label="Increase ${item.name} quantity"
-                        >
-                            +
-                        </button>
-                    </div>
+            details.append(title, unitPrice);
 
-                    <input
-                        type="hidden"
-                        name="items[][product_id]"
-                        value="${productId}"
-                    >
+            const lineTotalEl = document.createElement('strong');
+            lineTotalEl.textContent = formatMoney(lineTotal);
 
-                    <input
-                        type="hidden"
-                        name="items[][quantity]"
-                        value="${quantity}"
-                    >
-                </div>
-            `;
+            header.append(details, lineTotalEl);
 
-            orderItems.appendChild(wrapper);
+            const controls = document.createElement('div');
+            controls.className = 'd-flex align-items-center gap-2 mt-3';
+
+            const decreaseButton = document.createElement('button');
+            decreaseButton.type = 'button';
+            decreaseButton.className = 'btn btn-outline-secondary quantity-decrease';
+            decreaseButton.dataset.productId = String(productId);
+            decreaseButton.setAttribute('aria-label', `Decrease ${item.name} quantity`);
+            decreaseButton.textContent = '−';
+
+            const quantityLabel = document.createElement('span');
+            quantityLabel.className = 'px-2';
+            quantityLabel.setAttribute('aria-label', 'Quantity');
+            quantityLabel.textContent = String(quantity);
+
+            const increaseButton = document.createElement('button');
+            increaseButton.type = 'button';
+            increaseButton.className = 'btn btn-outline-secondary quantity-increase';
+            increaseButton.dataset.productId = String(productId);
+            increaseButton.setAttribute('aria-label', `Increase ${item.name} quantity`);
+            increaseButton.textContent = '+';
+
+            controls.append(decreaseButton, quantityLabel, increaseButton);
+
+            body.append(header, controls);
+
+            if (orderForm) {
+                const productInput = document.createElement('input');
+                productInput.type = 'hidden';
+                productInput.name = 'items[][product_id]';
+                productInput.value = String(productId);
+
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'hidden';
+                quantityInput.name = 'items[][quantity]';
+                quantityInput.value = String(quantity);
+
+                body.append(productInput, quantityInput);
+            }
+
+            wrapper.append(body);
+            orderItems.append(wrapper);
         });
 
         if (cart.size === 0) {
-            orderItems.innerHTML = `
-                <p class="text-muted mb-0">
-                    Your cart is empty.
-                </p>
-            `;
+            const emptyMessage = document.createElement('p');
+            emptyMessage.className = 'text-muted mb-0';
+            emptyMessage.textContent = 'Your cart is empty.';
+            orderItems.append(emptyMessage);
         }
 
         orderTotal.textContent = formatMoney(total);
+        saveCart();
     };
 
     document.addEventListener('click', (event) => {
@@ -171,5 +194,44 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCart();
     });
 
+    if (orderForm) {
+        orderForm.addEventListener('submit', (event) => {
+            if (cart.size === 0) {
+                event.preventDefault();
+                orderItems.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
+
     renderCart();
 });
+
+function loadCart() {
+    try {
+        const raw = sessionStorage.getItem(CART_STORAGE_KEY);
+
+        if (!raw) {
+            return new Map();
+        }
+
+        const parsed = JSON.parse(raw);
+
+        if (typeof parsed !== 'object' || parsed === null) {
+            return new Map();
+        }
+
+        const cart = new Map();
+
+        Object.entries(parsed).forEach(([productId, item]) => {
+            if (typeof item !== 'object' || item === null) {
+                return;
+            }
+
+            cart.set(Number(productId), item);
+        });
+
+        return cart;
+    } catch {
+        return new Map();
+    }
+}

@@ -36,7 +36,7 @@ final class CatalogController
         );
 
         return View::render(
-            'user.catalog',
+            'user.catalog.index',
             [
                 'title' => 'Catalogue',
                 'currentUser' => $user,

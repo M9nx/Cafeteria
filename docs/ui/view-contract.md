@@ -105,7 +105,11 @@ return View::render('auth/login', [
 ```
 
 The layout receives `$content` automatically from the view renderer.
+
 ## Catalogue and Order Views
+
+Controllers render `user.catalog.index` and `user.orders.create`.
+Both views include `components/catalog-assets.php` for stylesheet and cart script loading.
 
 ### `user/catalog/index.php`
 
