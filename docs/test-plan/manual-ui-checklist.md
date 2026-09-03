@@ -129,3 +129,28 @@ Day 4 — Order Lifecycle UI Verification
 - [ ] Mobile order history remains usable without horizontal content loss.
 - [ ] Mobile order queue remains usable at small screen widths.
 - [ ] Visible keyboard focus indicators remain present on order controls.
+## Day 5 — Reporting UI Verification
+
+- [ ] Admin checks/report summary loads correctly.
+- [ ] Report filters support `user_id`, `from`, `to`, and `include_cancelled`.
+- [ ] Applying filters preserves the selected filter values in the form.
+- [ ] Validation/filter errors are displayed as an accessible error summary.
+- [ ] Report rows display escaped user names, order counts, and total amounts.
+- [ ] Server-provided report totals are displayed correctly.
+- [ ] Each report row provides an accessible drill-down action.
+- [ ] User drill-down displays the selected user's prepared details.
+- [ ] User drill-down displays matching orders correctly.
+- [ ] User drill-down preserves the active date/cancelled filters when returning to the summary.
+- [ ] Empty report results display a clear accessible empty state.
+- [ ] Empty user drill-down results display a clear accessible empty state.
+- [ ] Reporting tables remain usable on narrow/mobile screen widths.
+- [ ] Wide reporting tables can be horizontally scrolled without losing content.
+- [ ] Table headers use accessible scope/caption information.
+- [ ] Keyboard users can reach and activate reporting controls.
+- [ ] Visible keyboard focus indicators remain present.
+- [ ] Client-side search/sort only changes already-rendered presentation rows.
+- [ ] Client-side search/sort does not calculate authoritative totals.
+- [ ] Client-side search/sort does not perform authorization checks.
+- [ ] Reporting views perform no repository, SQL, or service access.
+- [ ] Dynamic reporting values are escaped in rendered HTML.
+- [ ] Existing admin order and previous regression checks still pass.
