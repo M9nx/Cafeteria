@@ -24,17 +24,7 @@ final class ReportController
         Request $request,
         AuthenticatedUser $admin,
     ): Response {
-        $userId = $this->optionalUserId($request->input('user_id'));
-        $from = trim((string) $request->input('from', ''));
-        $to = trim((string) $request->input('to', ''));
-        $includeCancelled = (string) $request->input('include_cancelled', '') === '1';
-
-        $filter = new ChecksFilter(
-            userId: $userId,
-            from: $from !== '' ? $from : null,
-            to: $to !== '' ? $to : null,
-            includeCancelled: $includeCancelled,
-        );
+        [$filter, $filters] = $this->buildFilter($request);
 
         $errors = [];
         $summary = ['users' => []];
@@ -51,15 +41,77 @@ final class ReportController
             'Checks report',
             [
                 'summary' => $summary,
-                'filters' => [
-                    'user_id' => $userId ?? '',
-                    'from' => $from,
-                    'to' => $to,
-                    'include_cancelled' => $includeCancelled,
-                ],
+                'filters' => $filters,
                 'errors' => $errors,
             ],
         );
+    }
+
+    public function userDrillDown(
+        Request $request,
+        AuthenticatedUser $admin,
+        int $id,
+    ): Response {
+        [$filter, $filters] = $this->buildFilter($request);
+
+        $errors = [];
+        $drillDown = [
+            'user' => [
+                'id' => $id,
+                'name' => '',
+                'email' => '',
+            ],
+            'orders' => [],
+            'summary' => [
+                'order_count' => 0,
+                'total_amount' => '0.00',
+            ],
+        ];
+
+        try {
+            $drillDown = $this->reports->drillDown($id, $filter);
+        } catch (InvalidArgumentException $exception) {
+            $errors = [$exception->getMessage()];
+        }
+
+        return $this->renderAdmin(
+            $admin,
+            'admin.reports.user',
+            'Checks drill-down',
+            [
+                'drillDown' => $drillDown,
+                'filters' => $filters,
+                'errors' => $errors,
+            ],
+        );
+    }
+
+    /**
+     * @return array{0: ChecksFilter, 1: array<string, mixed>}
+     */
+    private function buildFilter(Request $request): array
+    {
+        $userId = $this->optionalUserId($request->input('user_id'));
+        $from = trim((string) $request->input('from', ''));
+        $to = trim((string) $request->input('to', ''));
+        $includeCancelled = (string) $request->input('include_cancelled', '') === '1';
+
+        $filter = new ChecksFilter(
+            userId: $userId,
+            from: $from !== '' ? $from : null,
+            to: $to !== '' ? $to : null,
+            includeCancelled: $includeCancelled,
+        );
+
+        return [
+            $filter,
+            [
+                'user_id' => $userId ?? '',
+                'from' => $from,
+                'to' => $to,
+                'include_cancelled' => $includeCancelled,
+            ],
+        ];
     }
 
     private function optionalUserId(mixed $value): ?int

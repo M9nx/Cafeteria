@@ -157,6 +157,12 @@ $router->post(
 );
 
 $router->get(
+    '/admin/checks/users/{id}',
+    [ReportController::class, 'userDrillDown'],
+    [$adminMiddleware]
+);
+
+$router->get(
     '/admin/checks',
     [ReportController::class, 'index'],
     [$adminMiddleware]
