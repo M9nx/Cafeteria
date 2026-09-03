@@ -32,11 +32,31 @@ This document defines acceptance tests for the authentication and authorization 
 | AT-ORD-005 | ORD-004 | Given a failure during multi-item order creation, when database write fails, then the entire transaction rolls back. | No partial or orphaned order records exist. | `OrderTransactionTest`, `Integration/Orders/OrderTransactionTest` |
 | AT-ORD-006 | SEC-001 | Given a tampered client price in the payload, when processed, then server overrides client prices with DB authoritative prices. | Client price manipulation is completely neutralized. | `ClientTamperingTest` |
 
+## Order Lifecycle Acceptance Tests (Issue #42)
+
+| Test ID | Requirement ID | Scenario | Expected Result | Automated Test |
+|---|---|---|---|---|
+| AT-CANCEL-001 | AUTHZ-002 | Given a `PROCESSING` order owned by another user, when a user attempts to cancel it, then cancellation is denied without revealing the order exists. | Service reports "Order not found." rather than "Forbidden."; no repository write occurs. | `OrderCancellationTest` |
+| AT-CANCEL-002 | HIST-004 | Given an order not in `PROCESSING` status, when its owner requests cancellation, then cancellation is denied before any repository write. | Order status remains unchanged; `cancelIfProcessing` is never called. | `OrderCancellationTest` |
+| AT-CANCEL-003 | LIFE-002 | Given a `PROCESSING` order, when the conditional repository update loses a concurrent race, then the service reports a distinct, catchable failure. | `InvalidArgumentException` is raised; order is left unmodified. | `OrderCancellationTest` |
+| AT-TRANS-001 | LIFE-001 | Given an admin actor, when a valid transition (`PROCESSING -> OUT_FOR_DELIVERY -> DONE`) is requested, then the transition is applied. | Order status advances exactly one step per the transition matrix. | `OrderStatusTransitionTest` |
+| AT-TRANS-002 | LIFE-001 | Given any actor, when an invalid or out-of-order transition is requested (including reaching `CANCELLED` via this path), then the transition is rejected. | Order status is left completely unchanged; no repository write occurs. | `OrderStatusTransitionTest` |
+| AT-TRANS-003 | AUTHZ-001 | Given a non-admin actor, when a status transition is requested, then the request is rejected before the order is read. | `Forbidden.` is raised; repository is never queried. | `OrderStatusTransitionTest` |
+| AT-QUEUE-001 | QUEUE-001 | Given orders in every status, when the admin current-order queue is requested, then only `PROCESSING`/`OUT_FOR_DELIVERY` orders are listed, oldest first. | `DONE`/`CANCELLED` orders are excluded from both items and total count. | `OrderQueueTest` |
+| AT-HIST-001 | AUTHZ-002 | Given a regular user, when the user requests another user's order history, then the request is rejected before any query runs. | `Forbidden.` is raised; repository is never queried. | `OrderHistoryTest` |
+| AT-HIST-002 | HIST-001 | Given an invalid page number, malformed date, or `from` after `to`, when order history is requested, then the request is rejected with a field-specific message. | History query is never executed for an invalid filter. | `OrderHistoryTest` |
+| AT-ADMIN-007 | ADMIN-004 | Given an admin placing an order for a selected active customer, when the order is stored, then the customer and the creator are recorded as distinct identities. | `user_id` = selected customer; `created_by_user_id` = admin; the two differ. | `AdminOnBehalfOrderTest` |
+| AT-ADMIN-008 | ADMIN-004 | Given an inactive/non-existent customer or inactive room, when an admin attempts to place an order on their behalf, then the request is rejected. | No order is persisted; a field-specific validation message is returned. | `AdminOnBehalfOrderTest` |
+| AT-DATE-001 | HIST-001 | Given orders at the exact start (`00:00:00`) and end (`23:59:59`) of a filtered day, when the date range is applied, then both boundary orders are included. | Orders on the `from`/`to` boundary are present in the result. | `OrderDateBoundaryTest` |
+| AT-DATE-002 | HIST-001 | Given orders one second before `from` or one second after `to`, when the date range is applied, then those orders are excluded. | Orders just outside the inclusive range do not appear in the result. | `OrderDateBoundaryTest` |
+
 ## Verification
 
 Authentication and authorization tests were executed during the Day 2 security regression work.
 
 Order feature tests in `tests/Feature/Order/` exercise `OrderService` with deterministic fixtures and verify validation, totals, snapshots, tampering resistance, and transaction rollback behavior.
+
+Order lifecycle tests in `tests/Feature/Order/` (Issue #42) exercise `OrderStatusService`, `UserOrderQueryService`, and `PdoOrderQueryRepository` with the `lifecycle_orders` fixtures in `tests/Fixtures/orders.php`, and verify ownership-safe cancellation, valid/invalid status transitions, the admin fulfillment queue, user history scoping and date-filter validation, admin order-on-behalf customer/creator identity, and inclusive date-range boundaries.
 
 Detailed results are documented in:
 
