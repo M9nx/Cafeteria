@@ -17,6 +17,8 @@ use RuntimeException;
 
 final class UserController
 {
+    use RendersAdminView;
+
     public function __construct(
         private readonly UserService $users,
         private readonly CsrfTokenManager $csrf,
@@ -37,12 +39,15 @@ final class UserController
             $perPage
         );
 
-        return Response::html(
-            $this->render('admin/users/index.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.users.index',
+            'Admin users',
+            [
                 'users' => $result,
                 'csrfToken' => $this->csrf->token(),
                 'flash' => $this->flash->pullAll(),
-            ])
+            ],
         );
     }
 
@@ -50,13 +55,17 @@ final class UserController
         Request $request,
         AuthenticatedUser $admin
     ): Response {
-        return Response::html(
-            $this->render('admin/users/form.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.users.form',
+            'Create admin user',
+            [
                 'mode' => 'create',
                 'user' => null,
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -89,15 +98,17 @@ final class UserController
 
             return Response::redirect('/admin/users');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('admin/users/form.php', [
+            return $this->renderAdmin(
+                $admin,
+                'admin.users.form',
+                'Create admin user',
+                [
                     'mode' => 'create',
                     'user' => null,
                     'errors' => [$exception->getMessage()],
                     'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -109,13 +120,17 @@ final class UserController
     ): Response {
         $user = $this->users->findById($admin, $id);
 
-        return Response::html(
-            $this->render('admin/users/form.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.users.form',
+            'Edit admin user',
+            [
                 'mode' => 'edit',
                 'user' => $user,
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -150,8 +165,11 @@ final class UserController
 
             return Response::redirect('/admin/users');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('admin/users/form.php', [
+            return $this->renderAdmin(
+                $admin,
+                'admin.users.form',
+                'Edit admin user',
+                [
                     'mode' => 'edit',
                     'user' => [
                         'id' => $id,
@@ -162,9 +180,9 @@ final class UserController
                         'extension' => $request->input('extension'),
                     ],
                     'errors' => [$exception->getMessage()],
+                    'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -227,23 +245,5 @@ final class UserController
         $value = (string) $value;
 
         return $value === '' ? null : $value;
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function render(
-        string $view,
-        array $data = []
-    ): string {
-        extract($data);
-
-        ob_start();
-
-        require dirname(__DIR__, 3)
-            . '/resources/views/'
-            . $view;
-
-        return (string) ob_get_clean();
     }
 }
