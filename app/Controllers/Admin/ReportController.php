@@ -8,6 +8,7 @@ use Cafeteria\Core\Auth\AuthenticatedUser;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\DTO\ChecksFilter;
+use Cafeteria\Services\ReportExportService;
 use Cafeteria\Services\ReportQueryService;
 use InvalidArgumentException;
 
@@ -17,6 +18,7 @@ final class ReportController
 
     public function __construct(
         private readonly ReportQueryService $reports,
+        private readonly ReportExportService $exporter,
     ) {
     }
 
@@ -45,6 +47,15 @@ final class ReportController
                 'errors' => $errors,
             ],
         );
+    }
+
+    public function export(
+        Request $request,
+        AuthenticatedUser $admin,
+    ): Response {
+        [$filter] = $this->buildFilter($request);
+
+        return $this->exporter->export($filter);
     }
 
     public function userDrillDown(

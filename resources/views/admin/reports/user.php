@@ -17,7 +17,7 @@ $e = static fn (mixed $value): string =>
 $query = static function (array $filters) use ($e): string {
     $params = [];
 
-    foreach (['from', 'to'] as $key) {
+    foreach (['user_id', 'from', 'to'] as $key) {
         $value = trim((string) ($filters[$key] ?? ''));
 
         if ($value !== '') {
@@ -38,35 +38,68 @@ $query = static function (array $filters) use ($e): string {
 ?>
 
 <section aria-labelledby="checks-drilldown-heading">
-    <h1 id="checks-drilldown-heading" class="h3 mb-3">Checks drill-down</h1>
+    <h1 id="checks-drilldown-heading" class="h3 mb-3">
+        Checks drill-down
+    </h1>
 
     <p class="mb-4">
-        <a href="/admin/checks<?= $e($query($filters)) ?>">Back to summary</a>
+        <a href="/admin/checks<?= $e($query($filters)) ?>">
+            Back to summary
+        </a>
     </p>
 
     <?php require dirname(__DIR__, 2) . '/components/form-errors.php'; ?>
 
     <div class="card mb-4">
         <div class="card-body">
-            <h2 class="h5 card-title">User</h2>
+            <h2 class="h5 card-title">
+                User
+            </h2>
+
             <dl class="row mb-0">
-                <dt class="col-sm-3">Name</dt>
-                <dd class="col-sm-9"><?= $e($user['name'] ?? '') ?></dd>
-                <dt class="col-sm-3">Email</dt>
-                <dd class="col-sm-9"><?= $e($user['email'] ?? '') ?></dd>
-                <dt class="col-sm-3">Orders</dt>
-                <dd class="col-sm-9"><?= (int) ($summary['order_count'] ?? 0) ?></dd>
-                <dt class="col-sm-3">Total amount</dt>
-                <dd class="col-sm-9"><?= $e($summary['total_amount'] ?? '0.00') ?></dd>
+                <dt class="col-sm-3">
+                    Name
+                </dt>
+
+                <dd class="col-sm-9">
+                    <?= $e($user['name'] ?? '') ?>
+                </dd>
+
+                <dt class="col-sm-3">
+                    Email
+                </dt>
+
+                <dd class="col-sm-9">
+                    <?= $e($user['email'] ?? '') ?>
+                </dd>
+
+                <dt class="col-sm-3">
+                    Orders
+                </dt>
+
+                <dd class="col-sm-9">
+                    <?= (int) ($summary['order_count'] ?? 0) ?>
+                </dd>
+
+                <dt class="col-sm-3">
+                    Total amount
+                </dt>
+
+                <dd class="col-sm-9">
+                    <?= $e($summary['total_amount'] ?? '0.00') ?>
+                </dd>
             </dl>
         </div>
     </div>
 
     <?php if ($orders === []): ?>
+
         <div class="alert alert-info" role="status">
             No orders match the selected filters for this user.
         </div>
+
     <?php else: ?>
+
         <div class="table-responsive">
             <table class="table table-striped align-middle">
                 <thead>
@@ -78,18 +111,36 @@ $query = static function (array $filters) use ($e): string {
                         <th scope="col">Created</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     <?php foreach ($orders as $order): ?>
+
                         <tr>
-                            <td>#<?= (int) ($order['id'] ?? 0) ?></td>
-                            <td><?= $e($order['room_name'] ?? '') ?></td>
-                            <td><?= $e($order['status'] ?? '') ?></td>
-                            <td><?= $e($order['total_amount'] ?? '0') ?></td>
-                            <td><?= $e($order['created_at'] ?? '') ?></td>
+                            <td>
+                                #<?= (int) ($order['id'] ?? 0) ?>
+                            </td>
+
+                            <td>
+                                <?= $e($order['room_name'] ?? '') ?>
+                            </td>
+
+                            <td>
+                                <?= $e($order['status'] ?? '') ?>
+                            </td>
+
+                            <td>
+                                <?= $e($order['total_amount'] ?? '0') ?>
+                            </td>
+
+                            <td>
+                                <?= $e($order['created_at'] ?? '') ?>
+                            </td>
                         </tr>
+
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
     <?php endif; ?>
 </section>

@@ -9,8 +9,8 @@ use Cafeteria\Controllers\Admin\AdminOrderController;
 use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\ProductController;
-use Cafeteria\Controllers\Admin\UserController;
 use Cafeteria\Controllers\Admin\ReportController;
+use Cafeteria\Controllers\Admin\UserController;
 
 $router->get(
     '/admin/categories',
@@ -120,11 +120,11 @@ $router->post(
     [$adminMiddleware]
 );
 
-/*
-|--------------------------------------------------------------------------
-| Admin orders
-|--------------------------------------------------------------------------
-*/
+/**
+ *--------------------------------------------------------------------------
+ * Admin orders
+ *--------------------------------------------------------------------------
+ */
 
 $router->get(
     '/admin/orders',
@@ -156,6 +156,18 @@ $router->post(
     [$adminMiddleware]
 );
 
+/**
+ *--------------------------------------------------------------------------
+ * Admin reports
+ *--------------------------------------------------------------------------
+ */
+
+$router->get(
+    '/admin/checks/export',
+    [ReportController::class, 'export'],
+    [$adminMiddleware]
+);
+
 $router->get(
     '/admin/checks/users/{id}',
     [ReportController::class, 'userDrillDown'],
@@ -173,3 +185,4 @@ $router->get(
     [ReportController::class, 'index'],
     [$adminMiddleware]
 );
+

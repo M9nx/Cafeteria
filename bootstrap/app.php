@@ -7,6 +7,7 @@ use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\ProductController;
 use Cafeteria\Controllers\Admin\UserController;
+use Cafeteria\Controllers\Admin\ReportController;
 use Cafeteria\Controllers\Auth\ForgotPasswordController;
 use Cafeteria\Controllers\Auth\LoginController;
 use Cafeteria\Controllers\Auth\LogoutController;
@@ -35,6 +36,7 @@ use Cafeteria\Repositories\Pdo\PdoOrderCommandRepository;
 use Cafeteria\Repositories\Pdo\PdoOrderQueryRepository;
 use Cafeteria\Repositories\Pdo\PdoPasswordResetTokenRepository;
 use Cafeteria\Repositories\Pdo\PdoProductRepository;
+use Cafeteria\Repositories\Pdo\PdoReportRepository;
 use Cafeteria\Services\AuthService;
 use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\OrderService;
@@ -43,6 +45,8 @@ use Cafeteria\Services\UserOrderQueryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\ProductService;
 use Cafeteria\Services\UserService;
+use Cafeteria\Services\ReportExportService;
+use Cafeteria\Services\ReportQueryService;
 use Cafeteria\Validation\CategoryValidator;
 use Cafeteria\Validation\LoginValidator;
 use Cafeteria\Validation\OrderHistoryValidator;
@@ -51,9 +55,6 @@ use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use Cafeteria\Validation\ProductValidator;
 use Cafeteria\Validation\UserValidator;
-use Cafeteria\Controllers\Admin\ReportController;
-use Cafeteria\Repositories\Pdo\PdoReportRepository;
-use Cafeteria\Services\ReportQueryService;
 use Cafeteria\Validation\ChecksFilterValidator;
 use Cafeteria\Mail\LogMailer;
 use Cafeteria\Mail\PasswordResetMailBuilder;
@@ -62,14 +63,19 @@ use Cafeteria\Mail\SmtpMailer;
 require __DIR__ . '/autoload.php';
 
 $appConfig = require dirname(__DIR__) . '/config/app.php';
+
 $sessionConfig = require dirname(__DIR__) . '/config/session.php';
+
 $databaseConfig = require dirname(__DIR__) . '/config/database.php';
+
 $mailConfig = require dirname(__DIR__) . '/config/mail.php';
 
 $session = new SessionManager($sessionConfig);
+
 $session->start();
 
 $flash = new FlashBag($session);
+
 $csrf = new CsrfTokenManager($session);
 
 View::share(
@@ -86,44 +92,63 @@ View::share(
             ENT_QUOTES,
             'UTF-8'
         ),
-    ),
+    )
 );
 
 $authMiddleware = new AuthMiddleware($session);
+
 $adminMiddleware = new AdminMiddleware($session);
+
 $guestMiddleware = new GuestMiddleware($session);
 
 $adminPolicy = new AdminPolicy();
+
 $orderPolicy = new OrderPolicy();
 
 $pdo = (new ConnectionFactory())->make($databaseConfig);
 
 $authUsers = new PdoAuthUserRepository($pdo);
+
 $resetTokens = new PdoPasswordResetTokenRepository($pdo);
+
 $categoryRepository = new PdoCategoryRepository($pdo);
+
 $productRepository = new PdoProductRepository($pdo);
+
 $orderCommandRepository = new PdoOrderCommandRepository($pdo);
+
 $orderQueryRepository = new PdoOrderQueryRepository($pdo);
+
 $adminUserRepository = new PdoAdminUserRepository($pdo);
+
 $reportRepository = new PdoReportRepository($pdo);
 
 $loginValidator = new LoginValidator();
+
 $passwordResetValidator = new PasswordResetValidator();
+
 $categoryValidator = new CategoryValidator();
+
 $productValidator = new ProductValidator();
+
 $placeOrderValidator = new PlaceOrderValidator();
+
 $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
     $pdo,
     $placeOrderValidator,
 );
+
 $userValidator = new UserValidator();
 
 $appTimezone = new \DateTimeZone(
     (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
 );
 
-$mailer = match (strtolower((string) ($mailConfig['driver'] ?? 'log'))) {
+$mailer = match (
+    strtolower((string) ($mailConfig['driver'] ?? 'log'))
+) {
     'smtp' => new SmtpMailer($mailConfig),
+
     default => new LogMailer(
         dirname(__DIR__)
         . DIRECTORY_SEPARATOR
@@ -143,6 +168,10 @@ $checksFilterValidator = new ChecksFilterValidator(
 $reportQueryService = new ReportQueryService(
     $reportRepository,
     $checksFilterValidator,
+);
+
+$reportExportService = new ReportExportService(
+    $reportQueryService,
 );
 
 $orderHistoryValidator = new OrderHistoryValidator($appTimezone);
@@ -308,6 +337,7 @@ $controllers = [
 
     ReportController::class => new ReportController(
         $reportQueryService,
+        $reportExportService,
     ),
 ];
 
@@ -391,6 +421,7 @@ return [
         'order_status' => $orderStatusService,
         'user_order_queries' => $userOrderQueryService,
         'report_queries' => $reportQueryService,
+        'report_exports' => $reportExportService,
     ],
 
     'router' => $router,
@@ -398,3 +429,4 @@ return [
     'request_factory' => static fn (): Request =>
         Request::fromGlobals(),
 ];
+

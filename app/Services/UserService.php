@@ -38,6 +38,18 @@ final class UserService
         return $this->users->paginate($page, $perPage);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findById(
+        AuthenticatedUser $admin,
+        int $id
+    ): ?array {
+        $this->authorize($admin);
+
+        return $this->users->findById($id);
+    }
+
     public function create(
         AuthenticatedUser $admin,
         CreateUserRequest $request
@@ -69,7 +81,10 @@ final class UserService
             'is_active' => 1,
         ];
 
-        if ($request->image !== null && $request->image !== []) {
+        if (
+            $request->image !== null
+            && $request->image !== []
+        ) {
             $filename = $this->uploader->upload($request->image);
 
             $attributes['profile_image_path'] =
@@ -132,7 +147,10 @@ final class UserService
             );
         }
 
-        if ($request->image !== null && $request->image !== []) {
+        if (
+            $request->image !== null
+            && $request->image !== []
+        ) {
             $filename = $this->uploader->upload($request->image);
 
             $attributes['profile_image_path'] =
@@ -169,15 +187,17 @@ final class UserService
         return $this->users->deactivate($id);
     }
 
-    private function authorize(AuthenticatedUser $admin): void
-    {
+    private function authorize(
+        AuthenticatedUser $admin
+    ): void {
         if (!$this->policy->canManageUsers($admin)) {
             throw new RuntimeException('Forbidden.');
         }
     }
 
-    private function isDuplicateKey(PDOException $exception): bool
-    {
+    private function isDuplicateKey(
+        PDOException $exception
+    ): bool {
         return (int) ($exception->errorInfo[1] ?? 0) === 1062;
     }
 }
