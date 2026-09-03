@@ -11,10 +11,10 @@ final class ProductsSeeder
 {
     /** @var list<array{name:string,category:string,price:string,image:?string}> */
     private const PRODUCTS = [
-        ['name' => 'Tea', 'category' => 'Hot Drinks', 'price' => '10.00', 'image' => '/assets/images/products/placeholder.svg'],
-        ['name' => 'Coffee', 'category' => 'Hot Drinks', 'price' => '15.00', 'image' => '/assets/images/products/placeholder.svg'],
-        ['name' => 'Cola', 'category' => 'Cold Drinks', 'price' => '20.00', 'image' => '/assets/images/products/placeholder.svg'],
-        ['name' => 'Chips', 'category' => 'Snacks', 'price' => '12.50', 'image' => '/assets/images/products/placeholder.svg'],
+        ['name' => 'Tea', 'category' => 'Hot Drinks', 'price' => '10.00', 'image' => '/assets/images/products/tea.svg'],
+        ['name' => 'Coffee', 'category' => 'Hot Drinks', 'price' => '15.00', 'image' => '/assets/images/products/coffee.svg'],
+        ['name' => 'Cola', 'category' => 'Cold Drinks', 'price' => '20.00', 'image' => '/assets/images/products/cola.svg'],
+        ['name' => 'Chips', 'category' => 'Snacks', 'price' => '12.50', 'image' => '/assets/images/products/chips.svg'],
     ];
 
     public function __construct(private readonly PDO $connection) {}
@@ -39,7 +39,25 @@ final class ProductsSeeder
                 'name' => $product['name'],
             ]);
 
-            if ($exists->fetchColumn() !== false) {
+            $existingId = $exists->fetchColumn();
+
+            if ($existingId !== false) {
+                $update = $this->connection->prepare(
+                    'UPDATE products
+                     SET image_path = :image_path
+                     WHERE id = :id
+                       AND (
+                            image_path IS NULL
+                            OR image_path = \'\'
+                            OR image_path = :placeholder
+                       )'
+                );
+                $update->execute([
+                    'image_path' => $product['image'],
+                    'id' => $existingId,
+                    'placeholder' => '/assets/images/products/placeholder.svg',
+                ]);
+
                 continue;
             }
 
