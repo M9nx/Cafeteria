@@ -13,6 +13,7 @@ use Cafeteria\Controllers\Auth\LoginController;
 use Cafeteria\Controllers\Auth\LogoutController;
 use Cafeteria\Controllers\Auth\ResetPasswordController;
 use Cafeteria\Controllers\HealthController;
+use Cafeteria\Controllers\MediaController;
 use Cafeteria\Controllers\User\CatalogController;
 use Cafeteria\Controllers\User\OrderController;
 use Cafeteria\Core\Auth\AdminMiddleware;
@@ -309,6 +310,14 @@ $controllers = [
         $pdo,
         $csrf,
         $flash,
+    ),
+
+    MediaController::class => new MediaController(
+        dirname(__DIR__)
+        . DIRECTORY_SEPARATOR
+        . 'storage'
+        . DIRECTORY_SEPARATOR
+        . 'uploads',
     ),
 
     CatalogController::class => new CatalogController(
