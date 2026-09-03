@@ -180,9 +180,3 @@ $router->get(
     [$adminMiddleware]
 );
 
-$router->get(
-    '/admin/reports',
-    [ReportController::class, 'index'],
-    [$adminMiddleware]
-);
-

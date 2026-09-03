@@ -153,6 +153,10 @@ final class ReportHttpTest extends HttpTestCase
             'From date must be in YYYY-MM-DD format.',
             $this->responseContent($response)
         );
+        self::assertStringNotContainsString(
+            '/admin/checks/export',
+            $this->responseContent($response)
+        );
     }
 
     public function test_admin_can_export_csv_with_preserved_filters(): void

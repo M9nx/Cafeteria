@@ -178,10 +178,27 @@ final class UserService
     ): bool {
         $this->authorize($admin);
 
+        if ($id === $admin->id()) {
+            throw new RuntimeException(
+                'You cannot deactivate your own account.'
+            );
+        }
+
         $user = $this->users->findById($id);
 
         if ($user === null) {
             throw new RuntimeException('User not found.');
+        }
+
+        $role = strtoupper((string) ($user['role'] ?? ''));
+
+        if (
+            $role === 'ADMIN'
+            && $this->users->countActiveAdmins() <= 1
+        ) {
+            throw new RuntimeException(
+                'Cannot deactivate the last active admin.'
+            );
         }
 
         return $this->users->deactivate($id);

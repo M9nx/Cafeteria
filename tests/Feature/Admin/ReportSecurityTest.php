@@ -188,18 +188,12 @@ final class ReportSecurityTest extends HttpTestCase
 
         $content = $this->responseContent($response);
 
-        self::assertStringContainsString(
-            'Checks report',
-            $content
-        );
-
-        self::assertStringNotContainsString(
-            'SQLSTATE',
-            $content
-        );
+        self::assertStringContainsString('Checks report', $content);
+        self::assertStringContainsString('User ID must be valid.', $content);
+        self::assertStringNotContainsString('SQLSTATE', $content);
     }
 
-    public function test_malformed_user_id_does_not_crash_or_leak_sql(): void
+    public function test_malformed_user_id_is_rejected_safely(): void
     {
         $this->loginAsAdmin();
 
@@ -211,8 +205,8 @@ final class ReportSecurityTest extends HttpTestCase
                 ],
             );
 
-            self::assertNotSame(
-                500,
+            self::assertSame(
+                200,
                 $this->responseStatus($response),
                 'Malformed user_id=' . $userId . ' must not 500.'
             );
@@ -220,12 +214,13 @@ final class ReportSecurityTest extends HttpTestCase
             $content = $this->responseContent($response);
 
             self::assertStringContainsString('Checks report', $content);
+            self::assertStringContainsString('User ID must be valid.', $content);
             self::assertStringNotContainsString('SQLSTATE', $content);
-            self::assertStringNotContainsString('<script>', $content);
+            self::assertStringNotContainsString('/admin/checks/export', $content);
         }
     }
 
-    public function test_array_shaped_include_cancelled_does_not_crash(): void
+    public function test_array_shaped_include_cancelled_is_rejected_safely(): void
     {
         $this->loginAsAdmin();
 
@@ -236,11 +231,16 @@ final class ReportSecurityTest extends HttpTestCase
             ],
         );
 
-        self::assertNotSame(500, $this->responseStatus($response));
+        self::assertSame(200, $this->responseStatus($response));
+
+        $content = $this->responseContent($response);
+
+        self::assertStringContainsString('Checks report', $content);
         self::assertStringContainsString(
-            'Checks report',
-            $this->responseContent($response)
+            'Include cancelled must be a valid flag.',
+            $content
         );
+        self::assertStringNotContainsString('/admin/checks/export', $content);
     }
 
     public function test_xss_filter_payload_is_escaped_on_checks_report(): void

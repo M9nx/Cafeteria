@@ -149,12 +149,13 @@ Concepts reviewed before this package: aggregate reconciliation, malicious filte
 | Invalid to date | RPT-002 | `ReportSecurityTest` | `to=2026-99-99` | No 500; validation message | PASS |
 | Reversed date range | RPT-002 | `ReportSecurityTest` | `from=2026-03-10&to=2026-03-01` | No 500; validation message | PASS |
 | Unknown user id | RPT-002 | `ReportSecurityTest` | `user_id=999999` | No 500; user does not exist | PASS |
-| SQLi-like user id | RPT-002 | `ReportSecurityTest` | `user_id=1 OR 1=1` | No 500; no `SQLSTATE` | PASS |
+| SQLi-like user id | RPT-002 | `ReportSecurityTest` | `user_id=1 OR 1=1` | No 500; `User ID must be valid.` | PASS |
 | Cross-user drill-down tamper | AUTHZ-001 | `ReportSecurityTest` | `/admin/checks/users/2?user_id=1` | Drill-down stays on user 2; `Demo Admin` not rendered | PASS |
 | XSS in from filter | RPT-002 | `ReportSecurityTest` | `from=<script>alert(1)</script>` | Raw script absent; validation message present | PASS |
-| Malformed user id `abc` / `1abc` | RPT-002 | `ReportSecurityTest` | GET `/admin/checks?user_id=abc` and `user_id=1abc` | Values should be rejected | FAIL — no 500/SQL leak, but `abc` is ignored and `1abc` is coerced to `1` (REL-P4-004) |
-| Array-shaped include_cancelled | RPT-002 | `ReportSecurityTest` | `include_cancelled[]=1` | Rejected or normalized without warning | FAIL — HTTP 200 with PHP warning `Array to string conversion` at `ReportController.php:108` (REL-P4-004) |
+| Malformed user id `abc` / `1abc` | RPT-002 | `ReportSecurityTest` | GET `/admin/checks?user_id=abc` and `user_id=1abc` | Values rejected | PASS — `User ID must be valid.`; export link hidden |
+| Array-shaped include_cancelled | RPT-002 | `ReportSecurityTest` | `include_cancelled[]=1` | Rejected without warning | PASS — `Include cancelled must be a valid flag.` |
 | Admin export CSV | RPT-003 | `ReportExportTest` | GET `/admin/checks/export` with valid filters | 200; `text/csv`; attachment filename | PASS |
+| Invalid export filters | RPT-003 | `ReportExportTest` | GET `/admin/checks/export?from=not-a-date` | HTML validation page, not CSV / 500 | PASS |
 | CSV formula injection | RPT-003 | `ReportExportTest` | Cells starting `= + - @` | Prefixed with `'` | PASS |
 | Filter preservation | RPT-001 | `ReportHttpTest` | Checks index with `from`/`to`/`user_id`/`include_cancelled` | Form values and export query string preserved | PASS |
 | Fixture reconciliation | RPT-001 | `ReportReconciliationTest` | Default, date, cancelled, and user filters | Per-user counts/amounts match fixture | PASS |
@@ -165,8 +166,8 @@ Concepts reviewed before this package: aggregate reconciliation, malicious filte
 |---|---:|---|
 | `composer validate --strict` | 0 | PASS |
 | `php -l bootstrap/app.php` | 0 | PASS: no syntax errors; unused `DateTimeZone` import is gone |
-| `./vendor/bin/phpunit tests/Feature/Admin/ReportReconciliationTest.php tests/Feature/Admin/ReportSecurityTest.php tests/Feature/Admin/ReportHttpTest.php tests/Feature/Admin/ReportExportTest.php` | 0 | PASS: 32 tests / 111 assertions (array `include_cancelled` still warns; see REL-P4-004) |
-| `composer test` | 0 | PASS with issues: 168 tests / 425 assertions, 1 warning (`ReportController.php:108`), 2 `fputcsv()` deprecations in `ReportExportService` |
+| `./vendor/bin/phpunit tests/Feature/Admin/ReportReconciliationTest.php tests/Feature/Admin/ReportSecurityTest.php tests/Feature/Admin/ReportHttpTest.php tests/Feature/Admin/ReportExportTest.php` | 0 | PASS: 33 tests / 124 assertions, no warnings |
+| `composer test` | 0 | PASS: 169 tests / 438 assertions |
 | `composer test:integration` | 2 | FAIL: `Tests\Unit\Services\FakeProductRepository` not found (REL-P4-001) |
 
 Targeted P4-BEG3 classes:
@@ -183,14 +184,14 @@ tests/Feature/Admin/ReportHttpTest.php
 
 | Control | Day 5 result | Evidence |
 |---|---|---|
-| SQLi result | PASS with remaining filter defect | Prepared statements hold; `user_id=1 OR 1=1` does not 500; malformed IDs still coerced (REL-P4-004) |
+| SQLi result | PASS | Prepared statements hold; malformed and SQLi-like `user_id` values are rejected |
 | XSS result | PASS | `<script>alert(1)</script>` is not rendered raw on `/admin/checks` |
-| CSRF result | BLOCKED | Create/edit product form now uses `_csrf_token`; product deactivate still posts `_token` (REL-P4-007) |
+| CSRF result | PASS | Product create/edit and deactivate forms post `_csrf_token` |
 | IDOR result | PASS | Guest/user blocked from checks/drill-down/export; `/admin/checks/users/2?user_id=1` does not leak admin data |
 | Session result | BLOCKED | Unchanged; inactive sessions are not revalidated (REL-P4-005) |
 | Upload result | BLOCKED | Unchanged; `ImageContentValidator` still not on the storage path (REL-P4-006) |
 | Reporting authorization result | PASS | Guest `302`, user `403`, admin `200` for index, drill-down, and export |
-| Export result | PASS with residual deprecation | Authorization, headers, and formula prefix tests pass; PHP 8.5 `fputcsv()` escape deprecation remains in P4-BEG2 code |
+| Export result | PASS | Authorization, headers, formula prefix, and invalid-filter HTML fallback tests pass |
 
 ### Gate counts after P4-BEG3
 
@@ -198,7 +199,7 @@ tests/Feature/Admin/ReportHttpTest.php
 |---|---:|
 | Open Critical count | 0 |
 | Open High count | 1 |
-| Open Medium count | 4 |
+| Open Medium count | 2 |
 | Open Low count | 0 |
 | Failed automated suite commands | 1 (`composer test:integration`) |
 
@@ -206,4 +207,4 @@ tests/Feature/Admin/ReportHttpTest.php
 
 `BLOCKED`
 
-Report reconciliation, drill-down/export authorization, and CSV formula-injection evidence now exist. The release gate stays blocked on High defect REL-P4-001 and the remaining Medium findings in `docs/test-plan/release-defect-log.md`.
+Report reconciliation, drill-down/export authorization, CSV formula-injection, malformed-filter rejection, product CSRF, and self-deactivation evidence now exist. The release gate stays blocked on High defect REL-P4-001 and Medium findings REL-P4-005 and REL-P4-006.

@@ -114,12 +114,14 @@ $query = static function (array $filters) use ($e): string {
                 Apply filters
             </button>
 
-            <a
-                href="/admin/checks/export<?= $e($query($filters)) ?>"
-                class="btn btn-outline-secondary"
-            >
-                Export CSV
-            </a>
+            <?php if ($errors === []): ?>
+                <a
+                    href="/admin/checks/export<?= $e($query($filters)) ?>"
+                    class="btn btn-outline-secondary"
+                >
+                    Export CSV
+                </a>
+            <?php endif; ?>
         </div>
     </form>
 

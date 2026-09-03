@@ -42,10 +42,24 @@ $query = static function (array $filters) use ($e): string {
         Checks drill-down
     </h1>
 
-    <p class="mb-4">
+    <p class="mb-4 d-flex gap-3">
         <a href="/admin/checks<?= $e($query($filters)) ?>">
             Back to summary
         </a>
+
+        <?php if ($errors === []): ?>
+            <?php
+            $exportQuery = $query([
+                'user_id' => $user['id'] ?? ($filters['user_id'] ?? ''),
+                'from' => $filters['from'] ?? '',
+                'to' => $filters['to'] ?? '',
+                'include_cancelled' => $filters['include_cancelled'] ?? false,
+            ]);
+            ?>
+            <a href="/admin/checks/export<?= $e($exportQuery) ?>">
+                Export CSV
+            </a>
+        <?php endif; ?>
     </p>
 
     <?php require dirname(__DIR__, 2) . '/components/form-errors.php'; ?>

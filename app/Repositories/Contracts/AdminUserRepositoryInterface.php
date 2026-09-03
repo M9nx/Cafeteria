@@ -27,4 +27,6 @@ interface AdminUserRepositoryInterface
     public function update(int $id, array $attributes): bool;
 
     public function deactivate(int $id): bool;
+
+    public function countActiveAdmins(): int;
 }

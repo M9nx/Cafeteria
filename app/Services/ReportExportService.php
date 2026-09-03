@@ -34,7 +34,10 @@ final class ReportExportService
                 'User',
                 'Orders',
                 'Total amount',
-            ]
+            ],
+            ',',
+            '"',
+            '',
         );
 
         foreach (($summary['users'] ?? []) as $row) {
@@ -45,7 +48,10 @@ final class ReportExportService
                     $this->safeCsvCell($row['user_name'] ?? ''),
                     $this->safeCsvCell($row['order_count'] ?? 0),
                     $this->safeCsvCell($row['total_amount'] ?? '0.00'),
-                ]
+                ],
+                ',',
+                '"',
+                '',
             );
         }
 

@@ -258,4 +258,20 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
 
         return $stmt->rowCount() > 0;
     }
+
+    public function countActiveAdmins(): int
+    {
+        $statement = $this->pdo->query(
+            "SELECT COUNT(*)
+             FROM users
+             WHERE role = 'ADMIN'
+               AND is_active = 1"
+        );
+
+        if ($statement === false) {
+            return 0;
+        }
+
+        return (int) $statement->fetchColumn();
+    }
 }

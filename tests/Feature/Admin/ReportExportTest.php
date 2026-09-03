@@ -97,6 +97,33 @@ final class ReportExportTest extends HttpTestCase
         self::assertStringNotContainsString("'Safe User", $csv);
     }
 
+    public function test_invalid_export_filters_return_safe_html_not_csv(): void
+    {
+        $this->loginAsAdmin();
+
+        $response = $this->getWithQuery(
+            '/admin/checks/export?from=not-a-date',
+            [
+                'from' => 'not-a-date',
+            ],
+        );
+
+        self::assertSame(200, $this->responseStatus($response));
+        self::assertNotSame(
+            'text/csv; charset=UTF-8',
+            $this->responseHeader($response, 'Content-Type')
+        );
+
+        $content = $this->responseContent($response);
+
+        self::assertStringContainsString('Checks report', $content);
+        self::assertStringContainsString(
+            'From date must be in YYYY-MM-DD format.',
+            $content
+        );
+        self::assertStringNotContainsString('/admin/checks/export', $content);
+    }
+
     /**
      * @param array<string, mixed> $query
      */
