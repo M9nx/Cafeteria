@@ -44,7 +44,11 @@ $e = static fn (mixed $value): string =>
                             <td><?= $orderId ?></td>
                             <td><?= $e($order['user_name'] ?? '') ?></td>
                             <td><?= $e($order['room_name'] ?? '') ?></td>
-                            <td><?= $e($status) ?></td>
+                            <td>
+                              <?php
+                               require dirname(__DIR__, 2) . '/components/order-status-badge.php';
+                                 ?>
+                            </td>
                             <td><?= $e($order['total_amount'] ?? '') ?></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
