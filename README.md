@@ -131,6 +131,19 @@ composer test
 - **Routes:** `routes/web.php` registers `/media/{kind}/{filename}` and loads `auth.php`, `orders.php`, and `admin.php` (reports live under admin routes)
 - **Style:** Modular monolith MVC ([ADR 0001](docs/adr/0001-modular-monolith-mvc.md))
 
+## Day guides
+
+Beginner walkthroughs of what each phase built, plus a picture-first atlas of the live system:
+
+| Document | Phase | Contents |
+|----------|-------|----------|
+| [Day 1 foundation](docs/day-1-foundation-guide.md) | P0 | HTTP stack, migrations, seeds, CI |
+| [Day 2 authentication and admin](docs/day-2-authentication-admin-guide.md) | P1 | Session, CSRF, login/reset, users/categories |
+| [Day 3 catalog and ordering](docs/day-3-catalog-ordering-guide.md) | P2 | Catalogue, cart, placement, snapshots |
+| [Day 4 order lifecycle](docs/day-4-order-lifecycle-guide.md) | P3 | History, cancel, queue, on-behalf |
+| [Day 5 reporting and security](docs/day-5-reporting-security-guide.md) | P4 | Checks, drill-down, CSV, mailer |
+| [Architecture atlas through Day 5](docs/system-through-day-5-architecture-guide.md) | P0–P4 | C4, DFD, sequences, queue/state, route map |
+
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) covers branch names, Conventional Commits, PRs, and review ownership.
