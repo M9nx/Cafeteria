@@ -15,9 +15,26 @@ $totalPages = max(
 
 $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+
+$paginationQuery = array_filter(
+    [
+        'from' => $filters['from'] ?? null,
+        'to' => $filters['to'] ?? null,
+    ],
+    static fn (mixed $value): bool => is_string($value) && $value !== '',
+);
+
+$pageUrl = static function (int $targetPage) use ($paginationQuery): string {
+    return '/orders?' . http_build_query([
+        ...$paginationQuery,
+        'page' => $targetPage,
+    ]);
+};
 ?>
 
-<section aria-labelledby="orders-heading">
+<?php require dirname(__DIR__, 2) . '/components/order-assets.php'; ?>
+
+<section class="order-history" aria-labelledby="orders-heading">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <h1 id="orders-heading" class="h3 mb-0">My orders</h1>
         <a href="/orders/new" class="btn btn-primary">New order</a>
@@ -60,36 +77,65 @@ $e = static fn (mixed $value): string =>
                 </thead>
                 <tbody>
                     <?php foreach ($items as $order): ?>
+                        <?php
+                        $orderId = (int) ($order['id'] ?? 0);
+                        $detailsId = 'order-details-' . $orderId;
+                        $status = (string) ($order['status'] ?? '');
+                        ?>
                         <tr>
-                            <td><?= (int) ($order['id'] ?? 0) ?></td>
+                            <td><?= $orderId ?></td>
                             <td><?= $e($order['created_at'] ?? '') ?></td>
                             <td><?= $e($order['room_name'] ?? '') ?></td>
                             <td>
-                                 <?php
-                               $status = (string) ($order['status'] ?? '');
-                              require dirname(__DIR__, 2) . '/components/order-status-badge.php';
-                                 ?>
+                                <?php require dirname(__DIR__, 2) . '/components/order-status-badge.php'; ?>
                             </td>
                             <td><?= $e($order['total_amount'] ?? '') ?></td>
                             <td>
-                             <a href="/orders/<?= (int) ($order['id'] ?? 0) ?>" class="btn btn-sm btn-outline-primary">
-                                           View
-                             </a>
-
-                             <?php if (($order['status'] ?? '') === 'PROCESSING'): ?>
-                                <form method="POST"
-                                action="/orders/<?= (int) ($order['id'] ?? 0) ?>/cancel"
-                                class="d-inline">
-                                <input
-                                   type="hidden"
-                                   name="_csrf_token"
-                                   value="<?= $e($csrfToken ?? '') ?>"
-                                >
-                               <button type="submit" class="btn btn-sm btn-outline-danger">
-                                         Cancel
-                                </button>
-                               </form>
-                             <?php endif; ?>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        data-order-details-toggle
+                                        aria-expanded="false"
+                                        aria-controls="<?= $e($detailsId) ?>"
+                                    >
+                                        Details
+                                    </button>
+                                    <a
+                                        href="/orders/<?= $orderId ?>"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        View
+                                    </a>
+                                    <?php if ($status === 'PROCESSING'): ?>
+                                        <form
+                                            method="POST"
+                                            action="/orders/<?= $orderId ?>/cancel"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Cancel this order?');"
+                                        >
+                                            <?php if (isset($csrfField) && is_string($csrfField)): ?>
+                                                <?= $csrfField ?>
+                                            <?php endif; ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="<?= $e($detailsId) ?>" hidden>
+                            <td colspan="6">
+                                <div class="border rounded p-3 bg-light">
+                                    <?php if (!empty($order['notes'])): ?>
+                                        <p class="mb-2">
+                                            <span class="text-muted">Notes:</span>
+                                            <?= $e($order['notes']) ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    <a href="/orders/<?= $orderId ?>">Open full order detail</a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -102,7 +148,7 @@ $e = static fn (mixed $value): string =>
                 <ul class="pagination">
                     <?php if ($page > 1): ?>
                         <li class="page-item">
-                            <a class="page-link" href="/orders?page=<?= $page - 1 ?>">Previous</a>
+                            <a class="page-link" href="<?= $e($pageUrl($page - 1)) ?>">Previous</a>
                         </li>
                     <?php endif; ?>
                     <li class="page-item disabled">
@@ -110,7 +156,7 @@ $e = static fn (mixed $value): string =>
                     </li>
                     <?php if ($page < $totalPages): ?>
                         <li class="page-item">
-                            <a class="page-link" href="/orders?page=<?= $page + 1 ?>">Next</a>
+                            <a class="page-link" href="<?= $e($pageUrl($page + 1)) ?>">Next</a>
                         </li>
                     <?php endif; ?>
                 </ul>

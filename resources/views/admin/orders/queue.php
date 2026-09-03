@@ -13,9 +13,10 @@ $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 ?>
 
-<section aria-labelledby="queue-heading">
+<section class="order-queue" aria-labelledby="queue-heading">
     <h1 id="queue-heading" class="h3 mb-4">Current order queue</h1>
 
+    <?php require dirname(__DIR__, 2) . '/components/order-assets.php'; ?>
     <?php require dirname(__DIR__, 2) . '/components/admin-flash.php'; ?>
 
     <?php if ($items === []): ?>
@@ -45,9 +46,7 @@ $e = static fn (mixed $value): string =>
                             <td><?= $e($order['user_name'] ?? '') ?></td>
                             <td><?= $e($order['room_name'] ?? '') ?></td>
                             <td>
-                              <?php
-                               require dirname(__DIR__, 2) . '/components/order-status-badge.php';
-                                 ?>
+                                <?php require dirname(__DIR__, 2) . '/components/order-status-badge.php'; ?>
                             </td>
                             <td><?= $e($order['total_amount'] ?? '') ?></td>
                             <td>

@@ -7,20 +7,18 @@ declare(strict_types=1);
 $status = strtoupper(trim($status ?? ''));
 
 $labels = [
-    'PENDING' => 'Pending',
     'PROCESSING' => 'Processing',
     'OUT_FOR_DELIVERY' => 'Out for delivery',
-    'Done' => 'Done',
+    'DONE' => 'Done',
     'CANCELLED' => 'Cancelled',
 ];
 
 $label = $labels[$status] ?? ucfirst(strtolower(str_replace('_', ' ', $status)));
 
 $classes = [
-    'PENDING' => 'bg-warning text-dark',
     'PROCESSING' => 'bg-info text-dark',
     'OUT_FOR_DELIVERY' => 'bg-primary',
-    'Done' => 'bg-success',
+    'DONE' => 'bg-success',
     'CANCELLED' => 'bg-danger',
 ];
 
