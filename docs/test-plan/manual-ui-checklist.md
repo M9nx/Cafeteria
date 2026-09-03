@@ -106,3 +106,26 @@
 - [ ] Room selector remains usable on small screens.
 - [ ] Buttons remain reachable and usable on small screens.
 - [ ] Keyboard focus remains visible.
+Day 4 — Order Lifecycle UI Verification
+
+- [ ] User order history loads correctly for the authenticated user.
+- [ ] Date filter form displays and filters order history correctly.
+- [ ] Order history pagination controls work correctly.
+- [ ] Order status and totals are displayed with escaped values.
+- [ ] Cancel button is visible only for owned "PROCESSING" orders.
+- [ ] Cancel action uses POST and includes CSRF protection.
+- [ ] Order detail page displays order metadata, notes, and line items.
+- [ ] Order detail links and actions are ownership-safe.
+- [ ] Empty order history displays a clear empty state.
+- [ ] Empty order details display a clear line-item empty state.
+- [ ] Admin current-order queue displays active orders.
+- [ ] Queue status values are rendered using status badges.qq
+- [ ] Queue displays a clear empty state when there are no active orders.
+- [ ] Valid status transition buttons are displayed for each eligible order.
+- [ ] Status transition forms use POST and include CSRF protection.
+- [ ] Invalid status transitions are not offered by the UI.
+- [ ] Flash messages and validation errors are displayed when provided.
+- [ ] Expandable order-history details work without JavaScript-dependent authorization.
+- [ ] Mobile order history remains usable without horizontal content loss.
+- [ ] Mobile order queue remains usable at small screen widths.
+- [ ] Visible keyboard focus indicators remain present on order controls.
