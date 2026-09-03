@@ -6,6 +6,7 @@ namespace Cafeteria\Services;
 
 use Cafeteria\Core\Session\SessionManager;
 use Cafeteria\Mail\MailerInterface;
+use Cafeteria\Mail\PasswordResetMailBuilder;
 use Cafeteria\Repositories\Contracts\AuthUserRepositoryInterface;
 use Cafeteria\Repositories\Contracts\PasswordResetTokenRepositoryInterface;
 use DateInterval;
@@ -31,6 +32,7 @@ final class PasswordResetService
         private readonly SessionManager $session,
         private readonly PDO $pdo,
         private readonly MailerInterface $mailer,
+        private readonly PasswordResetMailBuilder $resetMailBuilder,
         private readonly array $appConfig,
         private readonly array $mailConfig,
     ) {
@@ -92,7 +94,9 @@ final class PasswordResetService
 
         $this->sendResetMail(
             (string) $user->email,
+            (string) $user->name,
             $resetUrl,
+            $ttlMinutes,
         );
 
         return $resetUrl;
@@ -162,26 +166,28 @@ final class PasswordResetService
         $this->session->destroy();
     }
 
-    private function sendResetMail(string $email, string $resetUrl): void
-    {
+    private function sendResetMail(
+        string $email,
+        string $recipientName,
+        string $resetUrl,
+        int $expiresMinutes,
+    ): void {
         $appName = trim((string) ($this->appConfig['name'] ?? 'Cafeteria'));
 
-        if ($appName === '') {
-            $appName = 'Cafeteria';
-        }
-
-        $subject = "{$appName} password reset";
-        $body = implode("\n", [
-            'You requested a password reset.',
-            '',
-            "Reset your password using this link:",
+        $message = $this->resetMailBuilder->build(
+            $appName !== '' ? $appName : 'Cafeteria',
+            $recipientName,
             $resetUrl,
-            '',
-            'If you did not request this reset, you can ignore this email.',
-        ]);
+            $expiresMinutes,
+        );
 
         try {
-            $this->mailer->send($email, $subject, $body);
+            $this->mailer->send(
+                $email,
+                $message['subject'],
+                $message['text'],
+                $message['html'],
+            );
         } catch (Throwable) {
             // Preserve generic forgot-password behavior when delivery fails.
         }

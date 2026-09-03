@@ -17,8 +17,9 @@ final class LogMailer implements MailerInterface
         string $to,
         string $subject,
         string $body,
+        ?string $htmlBody = null,
     ): void {
-        unset($body);
+        unset($body, $htmlBody);
 
         $directory = dirname($this->logPath);
 

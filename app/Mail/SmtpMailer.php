@@ -27,6 +27,7 @@ final class SmtpMailer implements MailerInterface
         string $to,
         string $subject,
         string $body,
+        ?string $htmlBody = null,
     ): void {
         $host = trim((string) ($this->config['host'] ?? ''));
 
@@ -109,16 +110,13 @@ final class SmtpMailer implements MailerInterface
             $this->command($socket, "RCPT TO:<{$to}>", [250, 251]);
             $this->command($socket, 'DATA', [354]);
 
-            $message = implode("\r\n", [
-                "From: {$from}",
-                "To: {$to}",
-                "Subject: {$subject}",
-                'MIME-Version: 1.0',
-                'Content-Type: text/plain; charset=UTF-8',
-                '',
+            $message = $this->buildMessage(
+                $from,
+                $to,
+                $subject,
                 $body,
-                '',
-            ]);
+                $htmlBody,
+            );
 
             fwrite($socket, $message . "\r\n.\r\n");
             $this->expectResponse($socket, [250]);
@@ -171,5 +169,50 @@ final class SmtpMailer implements MailerInterface
         if (!in_array($code, $expectedCodes, true)) {
             throw new RuntimeException('SMTP command failed.');
         }
+    }
+
+    private function buildMessage(
+        string $from,
+        string $to,
+        string $subject,
+        string $body,
+        ?string $htmlBody,
+    ): string {
+        $headers = [
+            "From: {$from}",
+            "To: {$to}",
+            "Subject: {$subject}",
+            'MIME-Version: 1.0',
+        ];
+
+        if ($htmlBody === null || trim($htmlBody) === '') {
+            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+            $headers[] = 'Content-Transfer-Encoding: 8bit';
+
+            return implode("\r\n", array_merge($headers, ['', $body, '']));
+        }
+
+        $boundary = 'cafeteria_' . bin2hex(random_bytes(12));
+
+        $headers[] = 'Content-Type: multipart/alternative; boundary="' . $boundary . '"';
+
+        $parts = [
+            implode("\r\n", $headers),
+            '',
+            '--' . $boundary,
+            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Transfer-Encoding: 8bit',
+            '',
+            $body,
+            '--' . $boundary,
+            'Content-Type: text/html; charset=UTF-8',
+            'Content-Transfer-Encoding: 8bit',
+            '',
+            $htmlBody,
+            '--' . $boundary . '--',
+            '',
+        ];
+
+        return implode("\r\n", $parts);
     }
 }

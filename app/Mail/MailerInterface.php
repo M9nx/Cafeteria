@@ -10,5 +10,6 @@ interface MailerInterface
         string $to,
         string $subject,
         string $body,
+        ?string $htmlBody = null,
     ): void;
 }
