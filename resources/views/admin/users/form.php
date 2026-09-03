@@ -18,7 +18,7 @@ $e = static fn (mixed $value): string =>
 
 $name = $old['name'] ?? $user['name'] ?? '';
 $email = $old['email'] ?? $user['email'] ?? '';
-$role = $old['role'] ?? $user['role'] ?? 'ADMIN';
+$role = $old['role'] ?? $user['role'] ?? 'USER';
 $roomId = $old['room_id'] ?? $user['room_id'] ?? '';
 $extension = $old['extension'] ?? $user['extension'] ?? '';
 
@@ -30,12 +30,12 @@ $action = $isEdit
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
     <div>
         <h1 class="h3 mb-1">
-            <?= $isEdit ? 'Edit admin user' : 'Create admin user' ?>
+            <?= $isEdit ? 'Edit user' : 'Create user' ?>
         </h1>
         <p class="text-body-secondary mb-0">
             <?= $isEdit
-                ? 'Update account details, room assignment, or password.'
-                : 'Add a new administrator or staff account.'
+                ? 'Update account details, role, room assignment, or password.'
+                : 'Add a cafeteria user or administrator. There is no public signup.'
             ?>
         </p>
     </div>
@@ -91,16 +91,16 @@ $action = $isEdit
                 <label for="role" class="form-label">Role</label>
                 <select id="role" name="role" class="form-select">
                     <option
-                        value="ADMIN"
-                        <?= strtoupper((string) $role) === 'ADMIN' ? 'selected' : '' ?>
-                    >
-                        Admin
-                    </option>
-                    <option
                         value="USER"
                         <?= strtoupper((string) $role) === 'USER' ? 'selected' : '' ?>
                     >
                         User
+                    </option>
+                    <option
+                        value="ADMIN"
+                        <?= strtoupper((string) $role) === 'ADMIN' ? 'selected' : '' ?>
+                    >
+                        Admin
                     </option>
                 </select>
             </div>

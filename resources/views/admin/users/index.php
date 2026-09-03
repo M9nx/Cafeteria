@@ -19,14 +19,14 @@ $e = static fn (mixed $value): string =>
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
     <div>
-        <h1 class="h3 mb-1">Admin users</h1>
+        <h1 class="h3 mb-1">Users</h1>
         <p class="text-body-secondary mb-0">
-            Manage administrator accounts, rooms, and account status.
+            Manage cafeteria accounts. There is no public signup, so add both admins and users here.
         </p>
     </div>
 
     <a href="/admin/users/create" class="btn btn-primary">
-        Create admin user
+        Create user
     </a>
 </div>
 
@@ -50,7 +50,7 @@ $e = static fn (mixed $value): string =>
 <?php if ($items === []): ?>
 
     <div class="alert alert-info" role="status">
-        No admin users found.
+        No users found.
     </div>
 
 <?php else: ?>
@@ -58,7 +58,7 @@ $e = static fn (mixed $value): string =>
     <div class="table-responsive">
         <table class="table table-striped table-hover align-middle">
             <caption class="visually-hidden">
-                Administrator accounts
+                Cafeteria user accounts
             </caption>
             <thead>
                 <tr>
@@ -78,7 +78,18 @@ $e = static fn (mixed $value): string =>
                         <td><?= (int) ($user['id'] ?? 0) ?></td>
                         <td><?= $e($user['name'] ?? '') ?></td>
                         <td><?= $e($user['email'] ?? '') ?></td>
-                        <td><?= $e($user['role'] ?? '') ?></td>
+                        <td>
+                            <?php
+                            $role = strtoupper((string) ($user['role'] ?? ''));
+                            $roleBadge = $role === 'ADMIN'
+                                ? 'text-bg-primary'
+                                : 'text-bg-secondary';
+                            $roleLabel = $role === 'ADMIN' ? 'Admin' : 'User';
+                            ?>
+                            <span class="badge <?= $roleBadge ?>">
+                                <?= $e($roleLabel) ?>
+                            </span>
+                        </td>
                         <td>
                             <?= $user['room_id'] !== null
                                 ? (int) $user['room_id']
@@ -106,7 +117,7 @@ $e = static fn (mixed $value): string =>
                                     <form
                                         method="POST"
                                         action="/admin/users/<?= (int) ($user['id'] ?? 0) ?>/deactivate"
-                                        onsubmit="return confirm('Deactivate this admin user?');"
+                                        onsubmit="return confirm('Deactivate this user?');"
                                     >
                                         <input
                                             type="hidden"
@@ -130,7 +141,7 @@ $e = static fn (mixed $value): string =>
     </div>
 
     <?php if ($totalPages > 1): ?>
-        <nav aria-label="Admin user pagination" class="mt-3">
+        <nav aria-label="User pagination" class="mt-3">
             <ul class="pagination">
                 <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                     <?php if ($page > 1): ?>

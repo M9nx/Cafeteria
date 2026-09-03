@@ -42,7 +42,7 @@ final class UserController
         return $this->renderAdmin(
             $admin,
             'admin.users.index',
-            'Admin users',
+            'Users',
             [
                 'users' => $result,
                 'csrfToken' => $this->csrf->token(),
@@ -58,7 +58,7 @@ final class UserController
         return $this->renderAdmin(
             $admin,
             'admin.users.form',
-            'Create admin user',
+            'Create user',
             [
                 'mode' => 'create',
                 'user' => null,
@@ -93,7 +93,7 @@ final class UserController
 
             $this->flash->flash(
                 'success',
-                'Admin user created successfully.'
+                'User created successfully.'
             );
 
             return Response::redirect('/admin/users');
@@ -101,7 +101,7 @@ final class UserController
             return $this->renderAdmin(
                 $admin,
                 'admin.users.form',
-                'Create admin user',
+                'Create user',
                 [
                     'mode' => 'create',
                     'user' => null,
@@ -123,7 +123,7 @@ final class UserController
         return $this->renderAdmin(
             $admin,
             'admin.users.form',
-            'Edit admin user',
+            'Edit user',
             [
                 'mode' => 'edit',
                 'user' => $user,
@@ -160,7 +160,7 @@ final class UserController
 
             $this->flash->flash(
                 'success',
-                'Admin user updated successfully.'
+                'User updated successfully.'
             );
 
             return Response::redirect('/admin/users');
@@ -168,7 +168,7 @@ final class UserController
             return $this->renderAdmin(
                 $admin,
                 'admin.users.form',
-                'Edit admin user',
+                'Edit user',
                 [
                     'mode' => 'edit',
                     'user' => [
@@ -202,7 +202,7 @@ final class UserController
 
             $this->flash->flash(
                 'success',
-                'Admin user deactivated successfully.'
+                'User deactivated successfully.'
             );
         } catch (RuntimeException $exception) {
             $this->flash->flash(
