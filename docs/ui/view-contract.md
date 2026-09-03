@@ -177,3 +177,72 @@ Contains responsive presentation styles for catalogue product cards, cart summar
 ### Client-side authority
 
 Client-side cart state and totals are previews only. The server must validate product availability, quantities, room selection, and authoritative prices when the order is submitted.
+Order Lifecycle Views
+
+"user/orders/index.php"
+
+Receives prepared authenticated order-history data.
+
+Variable| Type| Required| Purpose
+"$orders"| "array{items:list<array<string,mixed>>,total:int,page:int,per_page:int}"| yes| Authenticated user's paginated orders
+"$filters"| "array<string,mixed>"| no| Current date-filter values
+"$canCancel"| "bool"| no| Presentation hint for showing eligible cancel actions
+"$csrfField"| `string| null`| no
+"$flashMessages"| `array<string,string>| null`| no
+
+The view renders a date-filter form and paginated order history. Dynamic status and total values must be escaped.
+
+Cancel actions are shown only for orders owned by the authenticated user whose status is "PROCESSING". Authorization remains server-side.
+
+"user/orders/show.php"
+
+Receives one prepared order owned by the authenticated user.
+
+Variable| Type| Required| Purpose
+"$order"| "array<string,mixed>"| yes| Prepared order detail including line items and notes
+"$canCancel"| "bool"| no| Presentation hint for the cancel action
+"$flashMessages"| `array<string,string>| null`| no
+"$csrfField"| `string| null`| no
+
+The view renders order metadata, notes, and line items through "components/order-detail-panel.php".
+
+Order links and actions must be ownership-safe. Raw IDs from query strings must not be treated as authorization evidence.
+
+"admin/orders/queue.php"
+
+Receives the prepared current-order queue.
+
+Variable| Type| Required| Purpose
+"$queue"| "array<string,mixed>"| yes| Current orders and queue metadata
+"$csrfField"| `string| null`| no
+"$flashMessages"| `array<string,string>| null`| no
+
+The view renders current orders, status badges, and allowed status-transition POST controls. Empty queues render an accessible empty state.
+
+Status transitions must use POST with CSRF protection. Authorization and transition validity remain server-side.
+
+"components/order-status-badge.php"
+
+Variable| Type| Required| Purpose
+"$status"| "string"| yes| Prepared order status
+
+The component maps "PROCESSING", "OUT_FOR_DELIVERY", "DONE", and "CANCELLED" to escaped Bootstrap badge presentation.
+
+"components/order-detail-panel.php"
+
+Variable| Type| Required| Purpose
+"$items"| "array<int,array<string,mixed>>"| yes| Prepared order line items
+
+The component displays escaped product names, quantities, and line totals and provides an empty state when no items exist.
+
+Order lifecycle client assets
+
+"public/assets/js/order-details.js"
+
+Presentation-only progressive enhancement for expandable order-history rows/details.
+
+The script may toggle visibility and accessibility attributes such as "hidden" and "aria-expanded". It must not perform authorization checks, pricing decisions, or server-side state changes.
+
+"public/assets/css/orders.css"
+
+Responsive presentation styles for order history and queue views. Styles must remain compatible with the Bootstrap shell and preserve visible keyboard focus indicators.
