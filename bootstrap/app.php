@@ -55,13 +55,15 @@ use Cafeteria\Controllers\Admin\ReportController;
 use Cafeteria\Repositories\Pdo\PdoReportRepository;
 use Cafeteria\Services\ReportQueryService;
 use Cafeteria\Validation\ChecksFilterValidator;
-use DateTimeZone;
+use Cafeteria\Mail\LogMailer;
+use Cafeteria\Mail\SmtpMailer;
 
 require __DIR__ . '/autoload.php';
 
 $appConfig = require dirname(__DIR__) . '/config/app.php';
 $sessionConfig = require dirname(__DIR__) . '/config/session.php';
 $databaseConfig = require dirname(__DIR__) . '/config/database.php';
+$mailConfig = require dirname(__DIR__) . '/config/mail.php';
 
 $session = new SessionManager($sessionConfig);
 $session->start();
@@ -115,9 +117,22 @@ $placeOrderOnBehalfValidator = new PlaceOrderOnBehalfValidator(
 );
 $userValidator = new UserValidator();
 
-$appTimezone = new DateTimeZone(
+$appTimezone = new \DateTimeZone(
     (string) ($appConfig['timezone'] ?? 'Africa/Cairo')
 );
+
+$mailer = match (strtolower((string) ($mailConfig['driver'] ?? 'log'))) {
+    'smtp' => new SmtpMailer($mailConfig),
+    default => new LogMailer(
+        dirname(__DIR__)
+        . DIRECTORY_SEPARATOR
+        . 'storage'
+        . DIRECTORY_SEPARATOR
+        . 'logs'
+        . DIRECTORY_SEPARATOR
+        . 'mail.log'
+    ),
+};
 
 $checksFilterValidator = new ChecksFilterValidator(
     $pdo,
@@ -147,7 +162,9 @@ $passwordResetService = new PasswordResetService(
     $resetTokens,
     $session,
     $pdo,
+    $mailer,
     $appConfig,
+    $mailConfig,
 );
 
 $profileUploadDirectory = dirname(__DIR__)
