@@ -64,12 +64,32 @@ $e = static fn (mixed $value): string =>
                             <td><?= (int) ($order['id'] ?? 0) ?></td>
                             <td><?= $e($order['created_at'] ?? '') ?></td>
                             <td><?= $e($order['room_name'] ?? '') ?></td>
-                            <td><?= $e($order['status'] ?? '') ?></td>
+                            <td>
+                                 <?php
+                               $status = (string) ($order['status'] ?? '');
+                              require dirname(__DIR__, 2) . '/components/order-status-badge.php';
+                                 ?>
+                            </td>
                             <td><?= $e($order['total_amount'] ?? '') ?></td>
                             <td>
-                                <a href="/orders/<?= (int) ($order['id'] ?? 0) ?>" class="btn btn-sm btn-outline-primary">
-                                    View
-                                </a>
+                             <a href="/orders/<?= (int) ($order['id'] ?? 0) ?>" class="btn btn-sm btn-outline-primary">
+                                           View
+                             </a>
+
+                             <?php if (($order['status'] ?? '') === 'PROCESSING'): ?>
+                                <form method="POST"
+                                action="/orders/<?= (int) ($order['id'] ?? 0) ?>/cancel"
+                                class="d-inline">
+                                <input
+                                   type="hidden"
+                                   name="_csrf_token"
+                                   value="<?= $e($csrfToken ?? '') ?>"
+                                >
+                               <button type="submit" class="btn btn-sm btn-outline-danger">
+                                         Cancel
+                                </button>
+                               </form>
+                             <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>

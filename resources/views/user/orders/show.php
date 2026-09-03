@@ -39,32 +39,9 @@ $e = static fn (mixed $value): string =>
 
     <h2 class="h5 mb-3">Items</h2>
 
-    <?php if ($items === []): ?>
-        <div class="alert alert-info" role="status">No line items found.</div>
-    <?php else: ?>
-        <div class="table-responsive mb-4">
-            <table class="table table-striped align-middle">
-                <thead>
-                    <tr>
-                        <th scope="col">Product</th>
-                        <th scope="col">Unit price</th>
-                        <th scope="col">Qty</th>
-                        <th scope="col">Line total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($items as $item): ?>
-                        <tr>
-                            <td><?= $e($item['product_name_snapshot'] ?? '') ?></td>
-                            <td><?= $e($item['unit_price_snapshot'] ?? '') ?></td>
-                            <td><?= (int) ($item['quantity'] ?? 0) ?></td>
-                            <td><?= $e($item['line_total'] ?? '') ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php endif; ?>
+     <?php
+       require dirname(__DIR__, 2) . '/components/order-detail-panel.php';
+     ?>
 
     <?php if ($canCancel): ?>
         <form method="POST" action="/orders/<?= (int) ($order['id'] ?? 0) ?>/cancel" onsubmit="return confirm('Cancel this order?');">
