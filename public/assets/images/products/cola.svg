@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Cola">
+  <rect width="320" height="240" fill="#f4e9e6"/>
+  <path d="M132 44h56l8 18v132c0 14-16 22-36 22s-36-8-36-22V62z" fill="#b91c1c"/>
+  <rect x="136" y="70" width="48" height="28" rx="4" fill="#f8fafc"/>
+  <rect x="140" y="44" width="40" height="16" rx="4" fill="#111827"/>
+  <ellipse cx="160" cy="196" rx="36" ry="8" fill="#7f1d1d"/>
+</svg>

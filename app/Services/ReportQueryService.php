@@ -30,12 +30,48 @@ final class ReportQueryService
             );
         }
 
-        return $this->reports->summarize([
+        return $this->withSummaryTotals($this->reports->summarize([
             'from' => $filter->from,
             'to' => $filter->to,
             'user_id' => $filter->userId,
             'include_cancelled' => $filter->includeCancelled,
-        ]);
+        ]));
+    }
+
+    /**
+     * @param array<string, mixed> $summary
+     *
+     * @return array<string, mixed>
+     */
+    private function withSummaryTotals(array $summary): array
+    {
+        $users = $summary['users'] ?? [];
+
+        if (!is_array($users)) {
+            $users = [];
+        }
+
+        $totalOrders = 0;
+        $totalAmount = 0.0;
+
+        foreach ($users as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $totalOrders += (int) ($row['order_count'] ?? 0);
+            $totalAmount += (float) ($row['total_amount'] ?? 0);
+        }
+
+        $summary['total_orders'] = $totalOrders;
+        $summary['total_amount'] = number_format(
+            $totalAmount,
+            2,
+            '.',
+            '',
+        );
+
+        return $summary;
     }
 
     /**

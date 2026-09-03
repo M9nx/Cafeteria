@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Chips">
+  <rect width="320" height="240" fill="#f7f0dc"/>
+  <path d="M118 48h84c10 0 18 8 18 18v124c0 10-8 18-18 18h-84c-10 0-18-8-18-18V66c0-10 8-18 18-18z" fill="#eab308"/>
+  <rect x="108" y="86" width="104" height="56" fill="#dc2626"/>
+  <text x="160" y="122" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#fefce8">CHIPS</text>
+  <ellipse cx="160" cy="200" rx="52" ry="10" fill="#ca8a04"/>
+</svg>

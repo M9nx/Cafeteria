@@ -41,7 +41,40 @@ final class ReportQueryServiceTest extends TestCase
             ],
             $repository->lastSummarizeFilters,
         );
-        self::assertSame(['users' => []], $result);
+        self::assertSame(0, $result['total_orders']);
+        self::assertSame('0.00', $result['total_amount']);
+        self::assertSame([], $result['users']);
+    }
+
+    public function test_summarize_includes_aggregate_totals_from_user_rows(): void
+    {
+        $repository = new RecordingReportRepository();
+        $repository->summarizeResult = [
+            'users' => [
+                [
+                    'user_id' => 1,
+                    'user_name' => 'Demo User',
+                    'order_count' => 2,
+                    'total_amount' => '30.50',
+                ],
+                [
+                    'user_id' => 2,
+                    'user_name' => 'Other User',
+                    'order_count' => 1,
+                    'total_amount' => '10.00',
+                ],
+            ],
+        ];
+
+        $service = new ReportQueryService(
+            $repository,
+            new ChecksFilterValidator($this->pdo(), new DateTimeZone('UTC')),
+        );
+
+        $result = $service->summarize(new ChecksFilter());
+
+        self::assertSame(3, $result['total_orders']);
+        self::assertSame('40.50', $result['total_amount']);
     }
 
     public function test_summarize_raises_when_validation_fails(): void
@@ -113,11 +146,14 @@ final class RecordingReportRepository implements ReportRepositoryInterface
     /** @var array<string, mixed>|null */
     public ?array $lastSummarizeFilters = null;
 
+    /** @var array<string, mixed> */
+    public array $summarizeResult = ['users' => []];
+
     public function summarize(array $filters): array
     {
         $this->lastSummarizeFilters = $filters;
 
-        return ['users' => []];
+        return $this->summarizeResult;
     }
 
     public function ordersForUser(int $userId, array $filters): array

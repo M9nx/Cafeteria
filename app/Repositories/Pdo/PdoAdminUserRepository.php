@@ -29,14 +29,10 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
         $page = max(1, $page);
         $perPage = max(1, $perPage);
 
-        /*
-         * Count admins only.
-         */
-        $countSql = "
+        $countSql = '
             SELECT COUNT(*)
             FROM users
-            WHERE role = 'ADMIN'
-        ";
+        ';
 
         $countStmt = $this->pdo->prepare($countSql);
         $countStmt->execute();
@@ -48,12 +44,7 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
          */
         $offset = ($page - 1) * $perPage;
 
-        /*
-         * Fetch admins.
-         *
-         * Never select password_hash for listing.
-         */
-        $sql = "
+        $sql = '
             SELECT
                 id,
                 name,
@@ -66,10 +57,9 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
                 created_at,
                 updated_at
             FROM users
-            WHERE role = 'ADMIN'
             ORDER BY id DESC
             LIMIT :limit OFFSET :offset
-        ";
+        ';
 
         $stmt = $this->pdo->prepare($sql);
 
@@ -114,7 +104,6 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
                 updated_at
             FROM users
             WHERE id = :id
-              AND role = 'ADMIN'
             LIMIT 1
         ";
 
@@ -152,7 +141,7 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
                 :name,
                 :email,
                 :password_hash,
-                'ADMIN',
+                :role,
                 :room_id,
                 :extension,
                 :profile_image_path
@@ -165,6 +154,7 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
             'name' => $attributes['name'],
             'email' => $attributes['email'],
             'password_hash' => $attributes['password_hash'],
+            'role' => $this->normalizedRole($attributes['role'] ?? null),
             'room_id' => $attributes['room_id'] ?? null,
             'extension' => $attributes['extension'] ?? null,
             'profile_image_path' => $attributes['profile_image_path'] ?? null,
@@ -200,6 +190,11 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
             $params['password_hash'] = $attributes['password_hash'];
         }
 
+        if (array_key_exists('role', $attributes)) {
+            $fields[] = 'role = :role';
+            $params['role'] = $this->normalizedRole($attributes['role']);
+        }
+
         if (array_key_exists('room_id', $attributes)) {
             $fields[] = 'room_id = :room_id';
             $params['room_id'] = $attributes['room_id'];
@@ -230,7 +225,6 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
             UPDATE users
             SET " . implode(', ', $fields) . "
             WHERE id = :id
-              AND role = 'ADMIN'
         ";
 
         $stmt = $this->pdo->prepare($sql);
@@ -246,7 +240,6 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
             UPDATE users
             SET is_active = 0
             WHERE id = :id
-              AND role = 'ADMIN'
               AND is_active = 1
         ";
 
@@ -273,5 +266,12 @@ final class PdoAdminUserRepository implements AdminUserRepositoryInterface
         }
 
         return (int) $statement->fetchColumn();
+    }
+
+    private function normalizedRole(mixed $role): string
+    {
+        $normalized = strtoupper(trim((string) $role));
+
+        return $normalized === 'ADMIN' ? 'ADMIN' : 'USER';
     }
 }

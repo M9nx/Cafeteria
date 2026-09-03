@@ -13,7 +13,9 @@ $productId = (int) ($product['id'] ?? 0);
 $name = (string) ($product['name'] ?? '');
 $category = (string) ($product['category_name'] ?? '');
 $price = (string) ($product['price'] ?? '0.00');
-$imagePath = $product['image_path'] ?? null;
+$imagePath = \Cafeteria\Support\PublicFileUrl::fromStoredPath(
+    isset($product['image_path']) ? (string) $product['image_path'] : null
+);
 ?>
 
 <article
@@ -22,13 +24,11 @@ $imagePath = $product['image_path'] ?? null;
     data-product-name="<?= $e($name) ?>"
     data-product-price="<?= $e($price) ?>"
 >
-    <?php if (is_string($imagePath) && $imagePath !== ''): ?>
-        <img
-            src="<?= $e($imagePath) ?>"
-            class="card-img-top"
-            alt="<?= $e($name) ?>"
-        >
-    <?php endif; ?>
+    <img
+        src="<?= $e($imagePath) ?>"
+        class="card-img-top"
+        alt="<?= $e($name) ?>"
+    >
 
     <div class="card-body d-flex flex-column">
         <h2 class="h5 card-title mb-1">

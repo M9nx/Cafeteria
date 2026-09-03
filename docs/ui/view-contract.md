@@ -246,3 +246,101 @@ The script may toggle visibility and accessibility attributes such as "hidden" a
 "public/assets/css/orders.css"
 
 Responsive presentation styles for order history and queue views. Styles must remain compatible with the Bootstrap shell and preserve visible keyboard focus indicators.
+## Reporting Views
+
+### `admin/reports/index.php`
+
+Receives prepared reporting summary data from the controller/service.
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$summary` | `array<string,mixed>` | yes | Prepared user summary rows and server-side totals |
+| `$filters` | `array<string,mixed>` | no | Current `user_id`, `from`, `to`, and `include_cancelled` filter values |
+| `$errors` | `list<string>` | no | Validation or filter errors |
+
+The view renders an accessible reporting summary table with:
+
+- User, order count, and total amount columns.
+- Server-provided totals.
+- An empty state when no rows match the filters.
+- A drill-down action for each user.
+- GET filters for `user_id`, `from`, `to`, and `include_cancelled`.
+
+Filter values must be preserved when navigating to a user drill-down view.
+
+The view must not calculate authoritative totals, access repositories, or enforce authorization.
+
+### `admin/reports/user.php`
+
+Receives prepared drill-down data for one user.
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$drillDown` | `array<string,mixed>` | yes | Prepared user, orders, and server-side summary data |
+| `$filters` | `array<string,mixed>` | no | Current `from`, `to`, and `include_cancelled` filter values |
+| `$errors` | `list<string>` | no | Validation or filter errors |
+
+The view renders:
+
+- User details.
+- Server-provided order count and total amount.
+- Matching orders.
+- An accessible empty state when no orders match.
+- A link back to the reporting summary while preserving the active filters.
+
+Authorization and ownership checks remain server-side.
+
+### `components/report-summary-table.php`
+
+Reusable presentation component for reporting summary rows.
+
+| Variable | Type | Required | Purpose |
+|----------|------|----------|---------|
+| `$rows` | `list<array<string,mixed>>` | yes | Prepared user summary rows |
+| `$totalOrders` | `int` | yes | Server-provided total order count |
+| `$totalAmount` | `string|int|float` | yes | Server-provided total amount |
+
+The component renders an accessible, horizontally scrollable summary table and must escape all dynamic output.
+
+Totals are authoritative server-provided values. The component must not query repositories, calculate business totals, or enforce authorization.
+
+### Reporting client assets
+
+#### `public/assets/css/reports.css`
+
+Contains responsive presentation styles for reporting tables, filters, empty states, and drill-down views.
+
+Styles must preserve visible keyboard focus indicators and support horizontal overflow for wide tables on small screens.
+
+#### `public/assets/js/reports.js`
+
+Presentation-only progressive enhancement for reporting search/sort.
+
+Client-side search and sorting may change the displayed order or visibility of already-rendered rows only.
+
+The script must not:
+
+- perform authorization checks;
+- access repositories or server-side data;
+- calculate authoritative totals;
+- make server-side business decisions.
+
+### Reporting query parameters
+
+Reporting GET filters use:
+
+- `user_id`
+- `from`
+- `to`
+- `include_cancelled`
+
+Views must preserve relevant active query parameters when navigating between the summary and drill-down views.
+
+### Reporting states
+
+| State | View behavior |
+|-------|---------------|
+| Empty | Render an accessible message when no rows/orders match |
+| Error | Render escaped validation/filter errors through `components/form-errors.php` |
+| Loaded | Render prepared server-side rows and totals |
+| Responsive | Tables remain usable on narrow screens through horizontal overflow |

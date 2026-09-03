@@ -1,0 +1,45 @@
+.reports-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.reports-table-wrapper table {
+    min-width: 720px;
+}
+
+.reports-table-wrapper th,
+.reports-table-wrapper td {
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .reports-table-wrapper {
+        margin-inline: -0.5rem;
+        padding-inline: 0.5rem;
+    }
+
+    .reports-table-wrapper table {
+        min-width: 640px;
+    }
+
+    .reports-table-wrapper th,
+    .reports-table-wrapper td {
+        padding: 0.65rem 0.5rem;
+    }
+}
+
+.reports-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.reports-empty-state {
+    margin-top: 1rem;
+}
+
+.reports-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}

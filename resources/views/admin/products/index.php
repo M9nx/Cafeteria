@@ -23,33 +23,39 @@ $totalPages = max(1, (int) ceil($total / $perPage));
 
 $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+
+$flash = $flash ?? [];
 ?>
 
-<div class="container py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Products</h1>
-
-        <a
-            href="/admin/products/create"
-            class="btn btn-primary"
-        >
-            Create Product
-        </a>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Products</h1>
+        <p class="text-body-secondary mb-0">
+            Manage catalog items, prices, and availability.
+        </p>
     </div>
 
-    <?php foreach ($flash as $message): ?>
-        <?php
-        $type = $message['type'] ?? 'info';
-        $text = $message['message'] ?? '';
-        ?>
-        <div
-            class="alert alert-<?= $e($type) ?>"
-            role="alert"
-        >
-            <?= $e($text) ?>
-        </div>
-    <?php endforeach; ?>
+    <a href="/admin/products/create" class="btn btn-primary">
+        Create product
+    </a>
+</div>
+
+<?php foreach ($flash as $type => $message): ?>
+    <?php
+    $alertType = $type === 'error' ? 'danger' : (string) $type;
+    $allowed = ['success', 'danger', 'warning', 'info'];
+    $alertType = in_array($alertType, $allowed, true) ? $alertType : 'info';
+    ?>
+    <div class="alert alert-<?= $e($alertType) ?> alert-dismissible fade show" role="alert">
+        <?= $e(is_array($message) ? ($message['message'] ?? '') : $message) ?>
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close message"
+        ></button>
+    </div>
+<?php endforeach; ?>
 
     <?php if ($items === []): ?>
 
@@ -187,5 +193,3 @@ $e = static fn (mixed $value): string =>
         <?php endif; ?>
 
     <?php endif; ?>
-
-</div>
