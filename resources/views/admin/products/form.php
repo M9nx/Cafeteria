@@ -1,4 +1,3 @@
-```php
 <?php
 
 /**
@@ -24,11 +23,16 @@ $price = $old['price'] ?? $product['price'] ?? '';
 $isAvailable = $old['is_available'] ?? $product['is_available'] ?? false;
 
 $e = static fn (mixed $value): string =>
-    htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+    htmlspecialchars(
+        (string) $value,
+        ENT_QUOTES,
+        'UTF-8'
+    );
 
 $action = $isEdit
     ? '/admin/products/' . $e($product['id'] ?? '') . '/update'
     : '/admin/products';
+
 ?>
 
 <div class="container py-4">
@@ -40,13 +44,23 @@ $action = $isEdit
     </div>
 
     <?php if ($errors !== []): ?>
+
         <div class="alert alert-danger" role="alert">
+
             <ul class="mb-0">
+
                 <?php foreach ($errors as $error): ?>
-                    <li><?= $e($error) ?></li>
+
+                    <li>
+                        <?= $e($error) ?>
+                    </li>
+
                 <?php endforeach; ?>
+
             </ul>
+
         </div>
+
     <?php endif; ?>
 
     <form
@@ -55,14 +69,19 @@ $action = $isEdit
         enctype="multipart/form-data"
     >
 
+        <!-- CSRF Protection -->
         <input
             type="hidden"
-            name="_token"
+            name="_csrf_token"
             value="<?= $e($csrfToken) ?>"
         >
 
         <div class="mb-3">
-            <label for="name" class="form-label">
+
+            <label
+                for="name"
+                class="form-label"
+            >
                 Product name
             </label>
 
@@ -74,10 +93,15 @@ $action = $isEdit
                 value="<?= $e($name) ?>"
                 required
             >
+
         </div>
 
         <div class="mb-3">
-            <label for="category_id" class="form-label">
+
+            <label
+                for="category_id"
+                class="form-label"
+            >
                 Category
             </label>
 
@@ -87,26 +111,41 @@ $action = $isEdit
                 class="form-select"
                 required
             >
-                <option value="">Select category</option>
+
+                <option value="">
+                    Select category
+                </option>
 
                 <?php foreach ($categories as $category): ?>
+
                     <?php
+
                     $id = $category['id'] ?? '';
                     $categoryName = $category['name'] ?? '';
+
                     ?>
 
                     <option
                         value="<?= $e($id) ?>"
-                        <?= (string) $categoryId === (string) $id ? 'selected' : '' ?>
+                        <?= (string) $categoryId === (string) $id
+                            ? 'selected'
+                            : '' ?>
                     >
                         <?= $e($categoryName) ?>
                     </option>
+
                 <?php endforeach; ?>
+
             </select>
+
         </div>
 
         <div class="mb-3">
-            <label for="price" class="form-label">
+
+            <label
+                for="price"
+                class="form-label"
+            >
                 Price
             </label>
 
@@ -120,9 +159,11 @@ $action = $isEdit
                 step="0.01"
                 required
             >
+
         </div>
 
         <div class="form-check mb-3">
+
             <input
                 type="hidden"
                 name="is_available"
@@ -144,10 +185,15 @@ $action = $isEdit
             >
                 Available
             </label>
+
         </div>
 
         <div class="mb-4">
-            <label for="image" class="form-label">
+
+            <label
+                for="image"
+                class="form-label"
+            >
                 Product image
             </label>
 
@@ -158,6 +204,7 @@ $action = $isEdit
                 class="form-control"
                 accept="image/jpeg,image/png,image/webp"
             >
+
         </div>
 
         <div class="d-flex gap-2">
@@ -181,4 +228,4 @@ $action = $isEdit
     </form>
 
 </div>
-```
+

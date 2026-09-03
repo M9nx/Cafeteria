@@ -115,7 +115,7 @@ $e = static fn (mixed $value): string =>
                                     >
                                         <input
                                             type="hidden"
-                                            name="_token"
+                                            name="_csrf_token"
                                             value="<?= $e($csrfToken) ?>"
                                         >
 

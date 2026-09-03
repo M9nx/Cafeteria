@@ -8,6 +8,7 @@ use Cafeteria\Core\Auth\AuthenticatedUser;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\DTO\ChecksFilter;
+use Cafeteria\Services\ReportExportService;
 use Cafeteria\Services\ReportQueryService;
 use InvalidArgumentException;
 
@@ -17,6 +18,7 @@ final class ReportController
 
     public function __construct(
         private readonly ReportQueryService $reports,
+        private readonly ReportExportService $exporter,
     ) {
     }
 
@@ -24,12 +26,12 @@ final class ReportController
         Request $request,
         AuthenticatedUser $admin,
     ): Response {
-        [$filter, $filters] = $this->buildFilter($request);
-
+        $filters = $this->rawFilters($request);
         $errors = [];
         $summary = ['users' => []];
 
         try {
+            [$filter, $filters] = $this->buildFilter($request);
             $summary = $this->reports->summarize($filter);
         } catch (InvalidArgumentException $exception) {
             $errors = [$exception->getMessage()];
@@ -47,13 +49,34 @@ final class ReportController
         );
     }
 
+    public function export(
+        Request $request,
+        AuthenticatedUser $admin,
+    ): Response {
+        try {
+            [$filter] = $this->buildFilter($request);
+
+            return $this->exporter->export($filter);
+        } catch (InvalidArgumentException $exception) {
+            return $this->renderAdmin(
+                $admin,
+                'admin.reports.index',
+                'Checks report',
+                [
+                    'summary' => ['users' => []],
+                    'filters' => $this->rawFilters($request),
+                    'errors' => [$exception->getMessage()],
+                ],
+            );
+        }
+    }
+
     public function userDrillDown(
         Request $request,
         AuthenticatedUser $admin,
         int $id,
     ): Response {
-        [$filter, $filters] = $this->buildFilter($request);
-
+        $filters = $this->rawFilters($request);
         $errors = [];
         $drillDown = [
             'user' => [
@@ -69,6 +92,7 @@ final class ReportController
         ];
 
         try {
+            [$filter, $filters] = $this->buildFilter($request);
             $drillDown = $this->reports->drillDown($id, $filter);
         } catch (InvalidArgumentException $exception) {
             $errors = [$exception->getMessage()];
@@ -92,9 +116,17 @@ final class ReportController
     private function buildFilter(Request $request): array
     {
         $userId = $this->optionalUserId($request->input('user_id'));
-        $from = trim((string) $request->input('from', ''));
-        $to = trim((string) $request->input('to', ''));
-        $includeCancelled = (string) $request->input('include_cancelled', '') === '1';
+        $from = $this->scalarQueryValue(
+            $request->input('from', ''),
+            'From date must be in YYYY-MM-DD format.',
+        );
+        $to = $this->scalarQueryValue(
+            $request->input('to', ''),
+            'To date must be in YYYY-MM-DD format.',
+        );
+        $includeCancelled = $this->includeCancelledFlag(
+            $request->input('include_cancelled', ''),
+        );
 
         $filter = new ChecksFilter(
             userId: $userId,
@@ -114,10 +146,33 @@ final class ReportController
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function rawFilters(Request $request): array
+    {
+        $userId = $request->input('user_id');
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $includeCancelled = $request->input('include_cancelled');
+
+        return [
+            'user_id' => is_scalar($userId) ? (string) $userId : '',
+            'from' => is_scalar($from) ? (string) $from : '',
+            'to' => is_scalar($to) ? (string) $to : '',
+            'include_cancelled' => is_scalar($includeCancelled)
+                && (string) $includeCancelled === '1',
+        ];
+    }
+
     private function optionalUserId(mixed $value): ?int
     {
-        if (!is_string($value) && !is_int($value)) {
+        if ($value === null || $value === '') {
             return null;
+        }
+
+        if (!is_string($value) && !is_int($value)) {
+            throw new InvalidArgumentException('User ID must be valid.');
         }
 
         $normalized = trim((string) $value);
@@ -126,8 +181,38 @@ final class ReportController
             return null;
         }
 
-        $userId = (int) $normalized;
+        if (preg_match('/^[1-9][0-9]*$/', $normalized) !== 1) {
+            throw new InvalidArgumentException('User ID must be valid.');
+        }
 
-        return $userId > 0 ? $userId : null;
+        return (int) $normalized;
+    }
+
+    private function scalarQueryValue(mixed $value, string $message): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if (!is_scalar($value)) {
+            throw new InvalidArgumentException($message);
+        }
+
+        return trim((string) $value);
+    }
+
+    private function includeCancelledFlag(mixed $value): bool
+    {
+        if ($value === null || $value === '') {
+            return false;
+        }
+
+        if (!is_scalar($value)) {
+            throw new InvalidArgumentException(
+                'Include cancelled must be a valid flag.'
+            );
+        }
+
+        return (string) $value === '1';
     }
 }
