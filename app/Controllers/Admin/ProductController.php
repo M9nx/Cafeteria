@@ -18,6 +18,8 @@ use RuntimeException;
 
 final class ProductController
 {
+    use RendersAdminView;
+
     public function __construct(
         private readonly ProductService $products,
         private readonly CategoryRepositoryInterface $categories,
@@ -39,12 +41,15 @@ final class ProductController
             $perPage
         );
 
-        return Response::html(
-            $this->render('admin/products/index.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.products.index',
+            'Products',
+            [
                 'products' => $result,
                 'csrfToken' => $this->csrf->token(),
                 'flash' => $this->flash->pullAll(),
-            ])
+            ],
         );
     }
 
@@ -52,14 +57,18 @@ final class ProductController
         Request $request,
         AuthenticatedUser $admin
     ): Response {
-        return Response::html(
-            $this->render('admin/products/form.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.products.form',
+            'Create product',
+            [
                 'mode' => 'create',
                 'product' => null,
                 'categories' => $this->categories->listActive(),
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -69,13 +78,7 @@ final class ProductController
     ): Response {
         $this->verifyCsrf($request);
 
-        $dto = new CreateProductRequest(
-            (string) $request->input('name', ''),
-            (int) $request->input('category_id', 0),
-            (string) $request->input('price', ''),
-            (bool) $request->input('is_available', false),
-            $request->files()['image'] ?? null
-        );
+        $dto = $this->createRequestFrom($request);
 
         try {
             $this->products->create(
@@ -90,16 +93,18 @@ final class ProductController
 
             return Response::redirect('/admin/products');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('admin/products/form.php', [
+            return $this->renderAdmin(
+                $admin,
+                'admin.products.form',
+                'Create product',
+                [
                     'mode' => 'create',
                     'product' => null,
                     'categories' => $this->categories->listActive(),
                     'errors' => [$exception->getMessage()],
                     'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -118,14 +123,18 @@ final class ProductController
             throw new RuntimeException('Product not found.');
         }
 
-        return Response::html(
-            $this->render('admin/products/form.php', [
+        return $this->renderAdmin(
+            $admin,
+            'admin.products.form',
+            'Edit product',
+            [
                 'mode' => 'edit',
                 'product' => $product,
                 'categories' => $this->categories->listActive(),
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -136,13 +145,7 @@ final class ProductController
     ): Response {
         $this->verifyCsrf($request);
 
-        $dto = new UpdateProductRequest(
-            (string) $request->input('name', ''),
-            (int) $request->input('category_id', 0),
-            (string) $request->input('price', ''),
-            (bool) $request->input('is_available', false),
-            $request->files()['image'] ?? null
-        );
+        $dto = $this->updateRequestFrom($request);
 
         try {
             $this->products->update(
@@ -158,21 +161,24 @@ final class ProductController
 
             return Response::redirect('/admin/products');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('admin/products/form.php', [
+            return $this->renderAdmin(
+                $admin,
+                'admin.products.form',
+                'Edit product',
+                [
                     'mode' => 'edit',
                     'product' => [
                         'id' => $id,
                         'name' => $request->input('name', ''),
                         'category_id' => $request->input('category_id', 0),
                         'price' => $request->input('price', ''),
-                        'is_available' => (bool) $request->input('is_available', false),
+                        'is_available' => $this->availabilityFlag($request),
                     ],
                     'categories' => $this->categories->listActive(),
                     'errors' => [$exception->getMessage()],
+                    'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -204,6 +210,64 @@ final class ProductController
         return Response::redirect('/admin/products');
     }
 
+    private function createRequestFrom(Request $request): CreateProductRequest
+    {
+        return new CreateProductRequest(
+            (string) $request->input('name', ''),
+            (int) $request->input('category_id', 0),
+            $this->normalizedPrice($request),
+            $this->availabilityFlag($request),
+            $this->uploadedImage($request),
+        );
+    }
+
+    private function updateRequestFrom(Request $request): UpdateProductRequest
+    {
+        return new UpdateProductRequest(
+            (string) $request->input('name', ''),
+            (int) $request->input('category_id', 0),
+            $this->normalizedPrice($request),
+            $this->availabilityFlag($request),
+            $this->uploadedImage($request),
+        );
+    }
+
+    private function availabilityFlag(Request $request): bool
+    {
+        return (string) $request->input('is_available', '0') === '1';
+    }
+
+    private function normalizedPrice(Request $request): string
+    {
+        $raw = trim((string) $request->input('price', ''));
+
+        if ($raw === '' || !is_numeric($raw)) {
+            return $raw;
+        }
+
+        return number_format((float) $raw, 2, '.', '');
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function uploadedImage(Request $request): ?array
+    {
+        $image = $request->files()['image'] ?? null;
+
+        if (!is_array($image)) {
+            return null;
+        }
+
+        $error = (int) ($image['error'] ?? UPLOAD_ERR_NO_FILE);
+
+        if ($error === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        return $image;
+    }
+
     private function verifyCsrf(Request $request): void
     {
         $token = $request->input(
@@ -215,23 +279,5 @@ final class ProductController
         )) {
             throw new RuntimeException('Invalid CSRF token.');
         }
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function render(
-        string $view,
-        array $data = []
-    ): string {
-        extract($data);
-
-        ob_start();
-
-        require dirname(__DIR__, 3)
-            . '/resources/views/'
-            . $view;
-
-        return (string) ob_get_clean();
     }
 }
