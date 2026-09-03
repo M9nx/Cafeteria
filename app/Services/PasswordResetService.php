@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Cafeteria\Services;
 
 use Cafeteria\Core\Session\SessionManager;
+use Cafeteria\Mail\MailerInterface;
+use Cafeteria\Mail\PasswordResetMailBuilder;
 use Cafeteria\Repositories\Contracts\AuthUserRepositoryInterface;
 use Cafeteria\Repositories\Contracts\PasswordResetTokenRepositoryInterface;
 use DateInterval;
@@ -12,15 +14,27 @@ use DateTimeImmutable;
 use DateTimeZone;
 use PDO;
 use RuntimeException;
+use Throwable;
 
 final class PasswordResetService
 {
+    /**
+     * @param array{
+     *     url?: string,
+     *     reset_token_ttl_minutes?: int,
+     *     name?: string
+     * } $appConfig
+     * @param array{from?: string} $mailConfig
+     */
     public function __construct(
         private readonly AuthUserRepositoryInterface $users,
         private readonly PasswordResetTokenRepositoryInterface $tokens,
         private readonly SessionManager $session,
         private readonly PDO $pdo,
+        private readonly MailerInterface $mailer,
+        private readonly PasswordResetMailBuilder $resetMailBuilder,
         private readonly array $appConfig,
+        private readonly array $mailConfig,
     ) {
     }
 
@@ -65,7 +79,7 @@ final class PasswordResetService
             );
 
             $this->pdo->commit();
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->pdo->rollBack();
 
             throw $exception;
@@ -76,7 +90,16 @@ final class PasswordResetService
             '/'
         );
 
-        return "{$appUrl}/reset-password?token={$plainToken}";
+        $resetUrl = "{$appUrl}/reset-password?token={$plainToken}";
+
+        $this->sendResetMail(
+            (string) $user->email,
+            (string) $user->name,
+            $resetUrl,
+            $ttlMinutes,
+        );
+
+        return $resetUrl;
     }
 
     /**
@@ -134,12 +157,39 @@ final class PasswordResetService
             }
 
             $this->pdo->commit();
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->pdo->rollBack();
 
             throw $exception;
         }
 
         $this->session->destroy();
+    }
+
+    private function sendResetMail(
+        string $email,
+        string $recipientName,
+        string $resetUrl,
+        int $expiresMinutes,
+    ): void {
+        $appName = trim((string) ($this->appConfig['name'] ?? 'Cafeteria'));
+
+        $message = $this->resetMailBuilder->build(
+            $appName !== '' ? $appName : 'Cafeteria',
+            $recipientName,
+            $resetUrl,
+            $expiresMinutes,
+        );
+
+        try {
+            $this->mailer->send(
+                $email,
+                $message['subject'],
+                $message['text'],
+                $message['html'],
+            );
+        } catch (Throwable) {
+            // Preserve generic forgot-password behavior when delivery fails.
+        }
     }
 }

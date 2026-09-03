@@ -183,6 +183,27 @@ final class PdoReportRepository implements ReportRepositoryInterface
     }
 
     /**
+     * @return array{id: int|string, name: string, email: string}|null
+     */
+    public function findReportUser(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, name, email
+             FROM users
+             WHERE id = :id
+             LIMIT 1'
+        );
+
+        $statement->execute([
+            'id' => $userId,
+        ]);
+
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        return $user === false ? null : $user;
+    }
+
+    /**
      * @param array<int, string> $where
      * @param array<string, mixed> $params
      * @param array<string, mixed> $filter

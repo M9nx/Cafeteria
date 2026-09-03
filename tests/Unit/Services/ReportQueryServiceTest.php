@@ -73,10 +73,35 @@ final class ReportQueryServiceTest extends TestCase
         $service->summarize(new ChecksFilter(userId: 99));
     }
 
+    public function test_drill_down_returns_user_orders_and_summary(): void
+    {
+        $repository = new RecordingReportRepository();
+        $service = new ReportQueryService(
+            $repository,
+            new ChecksFilterValidator($this->pdo(), new \DateTimeZone('UTC')),
+        );
+
+        $result = $service->drillDown(
+            1,
+            new ChecksFilter(
+                from: '2026-01-01',
+                to: '2026-01-31',
+            ),
+        );
+
+        self::assertSame(1, $result['user']['id']);
+        self::assertSame('Report User', $result['user']['name']);
+        self::assertSame([], $result['orders']);
+        self::assertSame(0, $result['summary']['order_count']);
+    }
+
     private function pdo(): PDO
     {
         $pdo = new PDO('sqlite::memory:');
-        $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY)');
+        $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)');
+        $pdo->exec(
+            "INSERT INTO users (id, name, email) VALUES (1, 'Report User', 'report-user@example.test')"
+        );
 
         return $pdo;
     }
@@ -103,5 +128,14 @@ final class RecordingReportRepository implements ReportRepositoryInterface
     public function orderDetailsForReport(int $orderId, array $filters): ?array
     {
         return null;
+    }
+
+    public function findReportUser(int $userId): ?array
+    {
+        return [
+            'id' => $userId,
+            'name' => 'Report User',
+            'email' => 'report-user@example.test',
+        ];
     }
 }

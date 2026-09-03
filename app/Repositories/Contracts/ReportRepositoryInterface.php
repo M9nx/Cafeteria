@@ -7,23 +7,52 @@ namespace Cafeteria\Repositories\Contracts;
 interface ReportRepositoryInterface
 {
     /**
-     * @param array{from?: string, to?: string, user_id?: int, include_cancelled?: bool} $filter
+     * Per-user totals for the checks summary report.
      *
-     * @return array<string, mixed>
+     * @param array{
+     *     from?: string|null,
+     *     to?: string|null,
+     *     user_id?: int|null,
+     *     include_cancelled?: bool
+     * } $filter
+     *
+     * @return array{users: list<array{
+     *     user_id: int|string,
+     *     user_name: string,
+     *     order_count: int|string,
+     *     total_amount: string|float|int
+     * }>}
      */
     public function summarize(array $filter): array;
 
     /**
-     * @param array{from?: string, to?: string, include_cancelled?: bool} $filter
+     * Orders for a single user within validated report filters.
+     *
+     * @param array{
+     *     from?: string|null,
+     *     to?: string|null,
+     *     include_cancelled?: bool
+     * } $filter
      *
      * @return list<array<string, mixed>>
      */
     public function ordersForUser(int $userId, array $filter): array;
 
     /**
-     * @param array{from?: string, to?: string, include_cancelled?: bool} $filter
+     * Single order detail for report drill-down when the order matches filters.
+     *
+     * @param array{
+     *     from?: string|null,
+     *     to?: string|null,
+     *     include_cancelled?: bool
+     * } $filter
      *
      * @return array<string, mixed>|null
      */
     public function orderDetailsForReport(int $orderId, array $filter): ?array;
+
+    /**
+     * @return array{id: int|string, name: string, email: string}|null
+     */
+    public function findReportUser(int $userId): ?array;
 }
