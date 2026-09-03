@@ -79,6 +79,8 @@ $exportQuery = $query([
         </div>
     </div>
 
+    <?php require dirname(__DIR__, 2) . '/components/report-assets.php'; ?>
+
     <?php require dirname(__DIR__, 2) . '/components/form-errors.php'; ?>
 
     <div class="card mb-4">
