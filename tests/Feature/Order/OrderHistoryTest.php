@@ -175,7 +175,7 @@ final class OrderHistoryTest extends TestCase
 
     private function makeService(OrderQueryRepositoryInterface $orders): UserOrderQueryService
     {
-        $timezone = new DateTimeZone('UTC');
+        $timezone = new DateTimeZone('Africa/Cairo');
 
         return new UserOrderQueryService(
             $orders,

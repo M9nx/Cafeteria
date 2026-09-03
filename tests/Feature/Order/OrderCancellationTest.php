@@ -14,14 +14,13 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Tests\Support\LifecycleOrdersFixture;
 
 final class OrderCancellationTest extends TestCase
 {
     private const OWNER_ID = 2;
     private const OTHER_USER_ID = 3;
     private const ADMIN_ID = 1;
-    private const PROCESSING_ORDER_ID = 501;
-    private const DONE_ORDER_ID = 502;
     private const MISSING_ORDER_ID = 999;
 
     public function test_owner_can_cancel_own_processing_order(): void
@@ -30,10 +29,13 @@ final class OrderCancellationTest extends TestCase
         $commands = $this->commandsRepository();
         $service = $this->makeService($orders, $commands);
 
-        $service->cancel($this->user(self::OWNER_ID), self::PROCESSING_ORDER_ID);
+        $service->cancel(
+            $this->user(self::OWNER_ID),
+            LifecycleOrdersFixture::id('processing_order'),
+        );
 
         self::assertSame(
-            [self::PROCESSING_ORDER_ID, self::OWNER_ID],
+            [LifecycleOrdersFixture::id('processing_order'), self::OWNER_ID],
             $commands->lastCancelCallArgs(),
             'cancelIfProcessing() must be called with the order id and the acting user id.'
         );
@@ -50,7 +52,10 @@ final class OrderCancellationTest extends TestCase
 
         try {
             // Owned by OTHER_USER_ID, attacker is OWNER_ID.
-            $service->cancel($this->user(self::OWNER_ID), self::OTHER_USERS_ORDER_ID());
+            $service->cancel(
+                $this->user(self::OWNER_ID),
+                LifecycleOrdersFixture::id('other_users_processing_order'),
+            );
         } finally {
             self::assertNull(
                 $commands->lastCancelCallArgs(),
@@ -65,10 +70,13 @@ final class OrderCancellationTest extends TestCase
         $commands = $this->commandsRepository();
         $service = $this->makeService($orders, $commands);
 
-        $service->cancel($this->user(self::ADMIN_ID, 'ADMIN'), self::PROCESSING_ORDER_ID);
+        $service->cancel(
+            $this->user(self::ADMIN_ID, 'ADMIN'),
+            LifecycleOrdersFixture::id('processing_order'),
+        );
 
         self::assertSame(
-            [self::PROCESSING_ORDER_ID, self::ADMIN_ID],
+            [LifecycleOrdersFixture::id('processing_order'), self::ADMIN_ID],
             $commands->lastCancelCallArgs()
         );
     }
@@ -83,7 +91,10 @@ final class OrderCancellationTest extends TestCase
         $this->expectExceptionMessage('You are not allowed to cancel this order.');
 
         try {
-            $service->cancel($this->user(self::OWNER_ID), self::DONE_ORDER_ID);
+            $service->cancel(
+                $this->user(self::OWNER_ID),
+                LifecycleOrdersFixture::id('done_order'),
+            );
         } finally {
             self::assertNull(
                 $commands->lastCancelCallArgs(),
@@ -115,7 +126,10 @@ final class OrderCancellationTest extends TestCase
             'This order cannot be cancelled in its current state.'
         );
 
-        $service->cancel($this->user(self::OWNER_ID), self::PROCESSING_ORDER_ID);
+        $service->cancel(
+            $this->user(self::OWNER_ID),
+            LifecycleOrdersFixture::id('processing_order'),
+        );
     }
 
     private function makeService(
@@ -137,33 +151,18 @@ final class OrderCancellationTest extends TestCase
 
     private function ordersRepository(): FakeOrderQueryRepositoryForCancellation
     {
-        return new FakeOrderQueryRepositoryForCancellation([
-            self::PROCESSING_ORDER_ID => [
-                'id' => self::PROCESSING_ORDER_ID,
-                'user_id' => self::OWNER_ID,
-                'status' => 'PROCESSING',
-            ],
-            self::DONE_ORDER_ID => [
-                'id' => self::DONE_ORDER_ID,
-                'user_id' => self::OWNER_ID,
-                'status' => 'DONE',
-            ],
-            self::OTHER_USERS_ORDER_ID() => [
-                'id' => self::OTHER_USERS_ORDER_ID(),
-                'user_id' => self::OTHER_USER_ID,
-                'status' => 'PROCESSING',
-            ],
-        ]);
+        return new FakeOrderQueryRepositoryForCancellation(
+            LifecycleOrdersFixture::cancellationFakeOrders([
+                'processing_order',
+                'done_order',
+                'other_users_processing_order',
+            ]),
+        );
     }
 
     private function commandsRepository(): FakeOrderCommandRepositoryForCancellation
     {
         return new FakeOrderCommandRepositoryForCancellation();
-    }
-
-    private static function OTHER_USERS_ORDER_ID(): int
-    {
-        return 503;
     }
 }
 

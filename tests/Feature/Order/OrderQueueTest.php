@@ -7,6 +7,7 @@ namespace Tests\Feature\Order;
 use Cafeteria\Repositories\Pdo\PdoOrderQueryRepository;
 use PDO;
 use PHPUnit\Framework\TestCase;
+use Tests\Support\LifecycleOrdersFixture;
 
 final class OrderQueueTest extends TestCase
 {
@@ -19,6 +20,25 @@ final class OrderQueueTest extends TestCase
 
         $this->pdo = $this->freshDatabase();
         $this->repository = new PdoOrderQueryRepository($this->pdo);
+    }
+
+    public function test_queue_reads_active_and_terminal_rows_from_lifecycle_fixture(): void
+    {
+        $this->pdo->exec(
+            "INSERT INTO users (id, name, email, role) VALUES (2, 'Demo Owner', 'owner@example.test', 'USER')"
+        );
+
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'processing_order');
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'done_order');
+
+        $queue = $this->repository->listCurrentQueue(1, 15);
+        $ids = array_map(static fn (array $row): int => (int) $row['id'], $queue['items']);
+
+        self::assertSame(
+            [LifecycleOrdersFixture::id('processing_order')],
+            $ids,
+        );
+        self::assertSame(1, $queue['total']);
     }
 
     public function test_queue_includes_only_active_statuses(): void

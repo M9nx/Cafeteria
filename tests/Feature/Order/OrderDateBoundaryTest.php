@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use PDO;
 use PHPUnit\Framework\TestCase;
+use Tests\Support\LifecycleOrdersFixture;
 
 final class OrderDateBoundaryTest extends TestCase
 {
@@ -28,41 +29,53 @@ final class OrderDateBoundaryTest extends TestCase
 
     public function test_order_at_exact_start_of_from_day_is_included(): void
     {
-        $this->seedOrder(1, '2026-09-15 00:00:00');
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'boundary_start_of_day');
 
         $result = $this->paginateForFilterDay();
 
-        self::assertContainsOrderId(1, $result['items']);
+        self::assertContainsOrderId(
+            LifecycleOrdersFixture::id('boundary_start_of_day'),
+            $result['items'],
+        );
         self::assertSame(1, $result['total']);
     }
 
     public function test_order_at_exact_end_of_to_day_is_included(): void
     {
-        $this->seedOrder(1, '2026-09-15 23:59:59');
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'boundary_end_of_day');
 
         $result = $this->paginateForFilterDay();
 
-        self::assertContainsOrderId(1, $result['items']);
+        self::assertContainsOrderId(
+            LifecycleOrdersFixture::id('boundary_end_of_day'),
+            $result['items'],
+        );
         self::assertSame(1, $result['total']);
     }
 
     public function test_order_one_second_before_from_day_is_excluded(): void
     {
-        $this->seedOrder(1, '2026-09-14 23:59:59');
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'boundary_one_second_before_range');
 
         $result = $this->paginateForFilterDay();
 
-        self::assertNotContainsOrderId(1, $result['items']);
+        self::assertNotContainsOrderId(
+            LifecycleOrdersFixture::id('boundary_one_second_before_range'),
+            $result['items'],
+        );
         self::assertSame(0, $result['total']);
     }
 
     public function test_order_one_second_after_to_day_is_excluded(): void
     {
-        $this->seedOrder(1, '2026-09-16 00:00:00');
+        LifecycleOrdersFixture::seedSqliteOrder($this->pdo, 'boundary_one_second_after_range');
 
         $result = $this->paginateForFilterDay();
 
-        self::assertNotContainsOrderId(1, $result['items']);
+        self::assertNotContainsOrderId(
+            LifecycleOrdersFixture::id('boundary_one_second_after_range'),
+            $result['items'],
+        );
         self::assertSame(0, $result['total']);
     }
 
