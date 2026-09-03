@@ -49,25 +49,25 @@ final class ReportOrdersFixture
 
         // 4. Insert Orders for User A
         // Order inside date range (2026-03-01 12:00:00) -> Amount: 100.00
-        $this->createOrder($this->userAId, 100.00, 'DELIVERED', '2026-03-01 12:00:00');
+        $this->createOrder($this->userAId, 100.00, 'DONE', '2026-03-01 12:00:00');
 
         // Order exactly on 'FROM' date boundary (2026-03-01 00:00:00) -> Amount: 100.00
-        $this->createOrder($this->userAId, 100.00, 'COMPLETED', '2026-03-01 00:00:00');
+        $this->createOrder($this->userAId, 100.00, 'PROCESSING', '2026-03-01 00:00:00');
 
         // Order exactly on 'TO' date boundary (2026-03-01 23:59:59) -> Amount: 100.00
-        $this->createOrder($this->userAId, 100.00, 'COMPLETED', '2026-03-01 23:59:59');
+        $this->createOrder($this->userAId, 100.00, 'OUT_FOR_DELIVERY', '2026-03-01 23:59:59');
 
         // Cancelled Order inside range -> Amount: 500.00 (Excluded by default)
         $this->createOrder($this->userAId, 500.00, 'CANCELLED', '2026-03-01 15:00:00');
 
         // Order strictly BEFORE boundary (2026-02-28 23:59:59) -> Amount: 50.00
-        $this->createOrder($this->userAId, 50.00, 'COMPLETED', '2026-02-28 23:59:59');
+        $this->createOrder($this->userAId, 50.00, 'DONE', '2026-02-28 23:59:59');
 
         // Order strictly AFTER boundary (2026-03-02 00:00:00) -> Amount: 50.00
-        $this->createOrder($this->userAId, 50.00, 'COMPLETED', '2026-03-02 00:00:00');
+        $this->createOrder($this->userAId, 50.00, 'DONE', '2026-03-02 00:00:00');
 
         // 5. Insert Order for User B (Control Group) -> Amount: 150.00
-        $this->createOrder($this->userBId, 150.00, 'COMPLETED', '2026-03-01 12:00:00');
+        $this->createOrder($this->userBId, 150.00, 'DONE', '2026-03-01 12:00:00');
 
         return $this;
     }

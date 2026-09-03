@@ -50,6 +50,20 @@ This document defines acceptance tests for the authentication and authorization 
 | AT-DATE-001 | HIST-001 | Given orders at the exact start (`00:00:00`) and end (`23:59:59`) of a filtered day, when the date range is applied, then both boundary orders are included. | Orders on the `from`/`to` boundary are present in the result. | `OrderDateBoundaryTest` |
 | AT-DATE-002 | HIST-001 | Given orders one second before `from` or one second after `to`, when the date range is applied, then those orders are excluded. | Orders just outside the inclusive range do not appear in the result. | `OrderDateBoundaryTest` |
 
+## Checks Report Acceptance Tests (Issue #55)
+
+| Test ID | Requirement ID | Scenario | Expected Result | Automated Test |
+|---|---|---|---|---|
+| AT-RPT-001 | RPT-001 | Given a deterministic fixture of users and orders, when the default checks summary runs, then per-user `order_count` and `total_amount` match fixture sums with cancelled rows excluded. | User A = 5 orders / 400.00; User B = 1 order / 150.00. | `ReportReconciliationTest` |
+| AT-RPT-002 | RPT-001 | Given orders on, before, and after `2026-03-01`, when `from` and `to` are that day, then only in-range rows including both boundaries are counted. | User A = 3 / 300.00; User B = 1 / 150.00. | `ReportReconciliationTest` |
+| AT-RPT-003 | RPT-001 | Given a cancelled order inside the filtered day, when `include_cancelled` is true, then that order is added to the user total. | User A = 4 orders / 800.00 for `2026-03-01`. | `ReportReconciliationTest` |
+| AT-RPT-004 | RPT-001 | Given a user filter for fixture User A, when the summary runs, then only that user is returned. | One row; User A = 5 / 400.00. | `ReportReconciliationTest` |
+| AT-RPT-005 | AUTHZ-001 | Given a guest or regular user, when they request `/admin/checks`, `/admin/checks/users/{id}`, or `/admin/checks/export`, then access is denied. | Guest `302 /login`; user `403 Forbidden`. | `ReportSecurityTest`, `ReportExportTest`, `ReportHttpTest` |
+| AT-RPT-006 | RPT-002 | Given an admin, when invalid dates, reversed range, or an unknown user id are submitted, then the page stays safe and shows a validation message. | No HTTP 500; field-specific error text. | `ReportSecurityTest`, `ReportHttpTest` |
+| AT-RPT-007 | AUTHZ-001 | Given an admin on another user's drill-down, when `user_id` is tampered to a different user, then the page still scopes to the path user and does not leak the other user's name. | `/admin/checks/users/2?user_id=1` does not render `Demo Admin`. | `ReportSecurityTest` |
+| AT-RPT-008 | RPT-003 | Given an admin, when CSV export is requested with valid filters, then the file downloads with CSV headers. | HTTP 200; `text/csv`; `Content-Disposition` attachment. | `ReportExportTest`, `ReportHttpTest` |
+| AT-RPT-009 | RPT-003 | Given report cells that start with `=`, `+`, `-`, or `@`, when CSV is built, then those cells are prefixed with `'`. | Formula-leading values are neutralized; ordinary names are unchanged. | `ReportExportTest` |
+
 ## Verification
 
 Authentication and authorization tests were executed during the Day 2 security regression work.
@@ -58,7 +72,10 @@ Order feature tests in `tests/Feature/Order/` exercise `OrderService` with deter
 
 Order lifecycle tests in `tests/Feature/Order/` (Issue #42) exercise `OrderStatusService`, `UserOrderQueryService`, and `PdoOrderQueryRepository` with the `lifecycle_orders` fixtures in `tests/Fixtures/orders.php`, and verify ownership-safe cancellation, valid/invalid status transitions, the admin fulfillment queue, user history scoping and date-filter validation, admin order-on-behalf customer/creator identity, and inclusive date-range boundaries.
 
+Reporting tests in `tests/Feature/Admin/` (Issue #55) reconcile fixture aggregates, cover guest/user/admin authorization for checks/drill-down/export, reject invalid dates and unknown users, and smoke CSV formula-injection defense.
+
 Detailed results are documented in:
 
 - `docs/test-plan/security-regression.md`
 - `docs/test-plan/auth-threat-checklist.md`
+- `docs/test-plan/release-defect-log.md`

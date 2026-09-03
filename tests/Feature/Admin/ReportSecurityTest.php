@@ -199,6 +199,74 @@ final class ReportSecurityTest extends HttpTestCase
         );
     }
 
+    public function test_malformed_user_id_does_not_crash_or_leak_sql(): void
+    {
+        $this->loginAsAdmin();
+
+        foreach (['abc', '1abc', '0', '-4'] as $userId) {
+            $response = $this->getWithQuery(
+                '/admin/checks?user_id=' . rawurlencode($userId),
+                [
+                    'user_id' => $userId,
+                ],
+            );
+
+            self::assertNotSame(
+                500,
+                $this->responseStatus($response),
+                'Malformed user_id=' . $userId . ' must not 500.'
+            );
+
+            $content = $this->responseContent($response);
+
+            self::assertStringContainsString('Checks report', $content);
+            self::assertStringNotContainsString('SQLSTATE', $content);
+            self::assertStringNotContainsString('<script>', $content);
+        }
+    }
+
+    public function test_array_shaped_include_cancelled_does_not_crash(): void
+    {
+        $this->loginAsAdmin();
+
+        $response = $this->getWithQuery(
+            '/admin/checks?include_cancelled[]=1',
+            [
+                'include_cancelled' => ['1'],
+            ],
+        );
+
+        self::assertNotSame(500, $this->responseStatus($response));
+        self::assertStringContainsString(
+            'Checks report',
+            $this->responseContent($response)
+        );
+    }
+
+    public function test_xss_filter_payload_is_escaped_on_checks_report(): void
+    {
+        $this->loginAsAdmin();
+
+        $payload = '<script>alert(1)</script>';
+
+        $response = $this->getWithQuery(
+            '/admin/checks?from=' . rawurlencode($payload),
+            [
+                'from' => $payload,
+            ],
+        );
+
+        self::assertNotSame(500, $this->responseStatus($response));
+
+        $content = $this->responseContent($response);
+
+        self::assertStringNotContainsString($payload, $content);
+        self::assertStringContainsString(
+            'From date must be in YYYY-MM-DD format.',
+            $content
+        );
+    }
+
     public function test_admin_cannot_access_nonexistent_user_drill_down(): void
     {
         $this->loginAsAdmin();
