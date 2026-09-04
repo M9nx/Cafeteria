@@ -23,8 +23,34 @@
         });
     };
 
+    const initLoginTransition = () => {
+        const showLoginButton = document.getElementById('show-login-form');
+        const loginStart = document.getElementById('login-start');
+        const loginForm = document.getElementById('login-form');
+
+        if (
+            !(showLoginButton instanceof HTMLButtonElement) ||
+            !(loginStart instanceof HTMLElement) ||
+            !(loginForm instanceof HTMLFormElement)
+        ) {
+            return;
+        }
+
+        showLoginButton.addEventListener('click', () => {
+            loginStart.classList.add('d-none');
+            loginForm.classList.remove('d-none');
+
+            const emailInput = document.getElementById('email');
+
+            if (emailInput instanceof HTMLInputElement) {
+                emailInput.focus();
+            }
+        });
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         focusMainOnHashSkip();
         enhanceDismissibleAlerts();
+        initLoginTransition();
     });
 })();

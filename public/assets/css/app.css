@@ -1,10 +1,17 @@
+
 :root {
-    --app-primary: #0d6efd;
-    --app-primary-dark: #0a58ca;
-    --app-surface: #ffffff;
-    --app-muted: #6c757d;
-    --app-border: #dee2e6;
-    --app-focus: #86b7fe;
+    /* Fondo2na theme */
+    --app-primary: #8f3d35;
+    --app-primary-dark: #71302b;
+
+    --app-background: #f3ede3;
+    --app-surface: #fffdf8;
+
+    --app-text: #292522;
+    --app-muted: #746c64;
+    --app-border: #ddd3c5;
+    --app-focus: rgba(143, 61, 53, 0.18);
+
     --app-radius: 0.75rem;
     --app-spacing: 1rem;
 }
@@ -17,17 +24,200 @@
 
 body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: #212529;
-    background-color: #f8f9fa;
+    color: var(--app-text);
+    background-color: var(--app-background);
 }
 
 .app-body {
-    background-color: #f8f9fa;
+    background-color: #f8f6f1;
 }
 
+/* =========================
+   Guest / Login
+   ========================= */
+
 .guest-body {
-    background: linear-gradient(180deg, #eef4ff 0%, #f8f9fa 100%);
+    min-height: 100vh;
+    margin: 0;
+
+    background:
+        radial-gradient(
+            circle at 8% 10%,
+            rgba(143, 61, 53, 0.22),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            #f3ede3 0%,
+            #f3ede3 58%,
+            #8f3d35 100%
+        );
 }
+
+.guest-main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.guest-container {
+    width: 100%;
+    max-width: 460px;
+}
+
+.guest-card {
+    width: 100%;
+    padding: 2.5rem;
+    background: rgba(255, 253, 248, 0.96);
+    border: 1px solid rgba(221, 211, 197, 0.85);
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(41, 37, 34, 0.09);
+}
+
+/* =========================
+   Fondo2na Login
+   ========================= */
+
+.login-section {
+    width: 100%;
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-brand-name {
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 2.35rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--app-primary-dark);
+}
+
+.login-brand-line {
+    width: 42px;
+    height: 2px;
+    margin: 0.75rem auto 0;
+    background-color: var(--app-primary);
+    border-radius: 999px;
+}
+
+.login-intro {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-intro h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.login-intro p {
+    margin: 0;
+    color: var(--app-muted);
+    font-size: 0.95rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.login-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-field .form-label {
+    margin-bottom: 0.5rem;
+    color: var(--app-text);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.login-field .form-control {
+    min-height: 48px;
+    padding: 0.7rem 0.85rem;
+    color: var(--app-text);
+    background-color: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.login-field .form-control:hover {
+    border-color: #c9bdae;
+}
+
+.login-field .form-control:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px var(--app-focus);
+}
+
+/* Login button */
+
+.login-submit {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 0.25rem;
+
+    border: none;
+    border-radius: 10px;
+
+    background-color: var(--app-primary);
+    color: #ffffff;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease;
+}
+
+.login-submit:hover {
+    background-color: var(--app-primary-dark);
+}
+
+.login-submit:active {
+    transform: translateY(1px);
+}
+
+.login-submit:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+/* Forgot password */
+
+.login-forgot {
+    margin: 1.5rem 0 0;
+    text-align: center;
+}
+
+.login-forgot a {
+    color: var(--app-primary-dark);
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.login-forgot a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   Shared App
+   ========================= */
 
 .app-navbar {
     background-color: var(--app-primary);
@@ -42,12 +232,7 @@ body {
 .app-navbar .nav-link:focus-visible,
 .app-navbar .navbar-brand:hover,
 .app-navbar .navbar-brand:focus-visible {
-    color: #e7f1ff;
-}
-
-.guest-card {
-    border: 1px solid var(--app-border);
-    border-radius: var(--app-radius);
+    color: #f3ede3;
 }
 
 .app-main,
@@ -74,7 +259,7 @@ a:focus-visible {
 }
 
 .app-field-error {
-    color: #dc3545;
+    color: #a83232;
     font-size: 0.875rem;
     margin-top: 0.25rem;
 }
@@ -89,6 +274,25 @@ a:focus-visible {
 
 .table-responsive {
     overflow-x: auto;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 575.98px) {
+    .guest-main {
+        padding: 1rem;
+    }
+
+    .guest-card {
+        padding: 2rem 1.5rem;
+        border-radius: 14px;
+    }
+
+    .login-brand-name {
+        font-size: 2rem;
+    }
 }
 
 @media (max-width: 991.98px) {

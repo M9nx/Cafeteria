@@ -21,26 +21,24 @@ $pageTitle = htmlspecialchars($title ?? 'Cafeteria', ENT_QUOTES, 'UTF-8');
         crossorigin="anonymous"
     >
     <link href="/assets/css/app.css" rel="stylesheet">
+    <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap"
+    rel="stylesheet"
+     >
 </head>
 <body class="guest-body">
-    <main id="main-content" class="guest-main d-flex align-items-center min-vh-100 py-4" tabindex="-1">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-12 col-sm-10 col-md-8 col-lg-5">
-                    <div class="card guest-card shadow-sm">
-                        <div class="card-body p-4 p-md-5">
-                            <?php require dirname(__DIR__) . '/components/alerts.php'; ?>
-                            <?= $content ?>
-                        </div>
-                    </div>
-                </div>
+    <main id="main-content" class="guest-main" tabindex="-1">
+        <div class="guest-container">
+            <div class="guest-card">
+                <?php require dirname(__DIR__) . '/components/alerts.php'; ?>
+                <?= $content ?>
             </div>
         </div>
     </main>
 
     <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        integrity="sha384-YvpKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMkmK1eN7N6jIeHz"
         crossorigin="anonymous"
     ></script>
     <script src="/assets/js/app.js" defer></script>
