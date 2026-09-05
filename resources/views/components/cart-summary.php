@@ -1,41 +1,41 @@
-<?php
-
-declare(strict_types=1);
-
-/**
- * @var array<int, array<string, mixed>> $cartItems
- */
-
-$cartItems = $cartItems ?? [];
-
-$e = static fn (mixed $value): string =>
-    htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-?>
-
 <section
-    class="card cart-summary"
+    class="cart-summary"
     aria-labelledby="cart-heading"
 >
-    <div class="card-body">
-        <h2 id="cart-heading" class="h5 card-title">
+    <div class="cart-summary-head">
+        <h2 id="cart-heading" class="cart-summary-title">
             Your order
         </h2>
+        <span class="cart-badge" id="cart-count" aria-live="polite">0</span>
+    </div>
 
-        <div
-            id="cart-items"
-            class="mb-3"
-            aria-live="polite"
+    <div
+        id="cart-items"
+        class="cart-items"
+        aria-live="polite"
+    >
+        <p class="cart-empty-copy">
+            Your cart is empty.
+        </p>
+    </div>
+
+    <div class="cart-summary-footer">
+        <div class="cart-total-row">
+            <span>Total</span>
+            <span id="cart-total" class="cart-total-value">0.00</span>
+        </div>
+
+        <p class="cart-hint">
+            Preview only. Server validates availability and prices at checkout.
+        </p>
+
+        <a
+            href="/orders/new"
+            id="cart-checkout"
+            class="btn product-add-btn cart-checkout is-disabled"
+            aria-disabled="true"
         >
-            <p class="text-muted mb-0">
-                Your cart is empty.
-            </p>
-        </div>
-
-        <div class="border-top pt-3">
-            <div class="d-flex justify-content-between fw-semibold">
-                <span>Total</span>
-                <span id="cart-total">0.00</span>
-            </div>
-        </div>
+            Continue to checkout
+        </a>
     </div>
 </section>
