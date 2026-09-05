@@ -55,11 +55,22 @@ sort($categories);
                     All Products
                 </button>
                 <?php foreach ($categories as $category): ?>
+                    <?php $cimage = \Cafeteria\Support\DemoImageMap::category($category); ?>
                     <button
                         type="button"
                         class="order-chip"
                         data-category-filter="<?= $e($category) ?>"
                     >
+                        <?php if ($cimage !== null): ?>
+                            <img
+                                class="order-chip-thumb"
+                                src="<?= $e($cimage) ?>"
+                                alt=""
+                                width="22"
+                                height="22"
+                                loading="lazy"
+                            >
+                        <?php endif; ?>
                         <?= $e($category) ?>
                     </button>
                 <?php endforeach; ?>
@@ -164,23 +175,41 @@ sort($categories);
                     </div>
 
                     <div class="order-field">
-                        <label for="room_id" class="order-field-label">Delivery room</label>
-                        <select
-                            id="room_id"
-                            name="room_id"
-                            class="form-select order-field-control"
-                            required
+                        <span class="order-field-label" id="room-picker-label">Delivery room</span>
+                        <div
+                            class="room-picker"
+                            role="radiogroup"
+                            aria-labelledby="room-picker-label"
                         >
-                            <option value="">Select a room</option>
                             <?php foreach ($rooms as $room): ?>
-                                <option
-                                    value="<?= $e($room['id']) ?>"
-                                    <?= $selectedRoomId === (int) $room['id'] ? 'selected' : '' ?>
-                                >
-                                    <?= $e($room['name']) ?>
-                                </option>
+                                <?php
+                                $roomId = (int) ($room['id'] ?? 0);
+                                $roomName = (string) ($room['name'] ?? '');
+                                $roomImage = \Cafeteria\Support\DemoImageMap::room($roomName);
+                                $isSelected = $selectedRoomId === $roomId;
+                                ?>
+                                <label class="room-pick<?= $isSelected ? ' is-selected' : '' ?>">
+                                    <input
+                                        type="radio"
+                                        name="room_id"
+                                        value="<?= $e($roomId) ?>"
+                                        class="visually-hidden"
+                                        required
+                                        <?= $isSelected ? 'checked' : '' ?>
+                                    >
+                                    <?php if ($roomImage !== null): ?>
+                                        <img
+                                            src="<?= $e($roomImage) ?>"
+                                            alt=""
+                                            width="72"
+                                            height="54"
+                                            loading="lazy"
+                                        >
+                                    <?php endif; ?>
+                                    <span><?= $e($roomName) ?></span>
+                                </label>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
                     </div>
 
                     <div class="order-field">
