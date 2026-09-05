@@ -107,7 +107,15 @@ $e = static fn (mixed $value): string =>
                         <span class="site-navbar-user-name"><?= $e($userName) ?></span>
                     </div>
 
-                    <form action="/logout" method="post" class="site-navbar-logout">
+                    <form
+                        action="/logout"
+                        method="post"
+                        class="site-navbar-logout"
+                        data-confirm="Are you sure you want to log out?"
+                        data-confirm-title="Log out"
+                        data-confirm-label="Log out"
+                        data-confirm-tone="danger"
+                    >
                         <?php if (isset($csrfField) && is_string($csrfField)): ?>
                             <?= $csrfField ?>
                         <?php else: ?>
