@@ -14,6 +14,7 @@ $pageTitle = htmlspecialchars($title ?? 'Fondo2na', ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $pageTitle ?></title>
+    <?php require dirname(__DIR__) . '/components/brand-icons.php'; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
