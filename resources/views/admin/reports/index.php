@@ -9,6 +9,7 @@ declare(strict_types=1);
 $rows = $summary['users'] ?? [];
 $errors = $errors ?? [];
 $filters = $filters ?? [];
+$totalRows = max(0, (int) ($summary['total'] ?? count($rows)));
 
 $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -65,7 +66,7 @@ $totalAmount = $summary['total_amount'] ?? '0';
     <form
         method="GET"
         action="/admin/checks"
-        class="row g-3 mb-4"
+        class="app-filter-bar reports-filter-bar row g-3"
         aria-label="Report filters"
     >
         <div class="col-md-3">
@@ -90,6 +91,7 @@ $totalAmount = $summary['total_amount'] ?? '0';
                 name="from"
                 class="form-control"
                 value="<?= $e($from) ?>"
+                autocomplete="off"
             >
         </div>
 
@@ -102,6 +104,7 @@ $totalAmount = $summary['total_amount'] ?? '0';
                 name="to"
                 class="form-control"
                 value="<?= $e($to) ?>"
+                autocomplete="off"
             >
         </div>
 
@@ -178,11 +181,16 @@ $totalAmount = $summary['total_amount'] ?? '0';
                 data-report-search-status
                 aria-live="polite"
             >
-                Showing <?= count($rows) ?> report row(s).
+                Showing <?= count($rows) ?> of <?= $totalRows ?> report row(s) on this page.
             </div>
         </div>
 
         <?php require dirname(__DIR__, 2) . '/components/report-summary-table.php'; ?>
+
+        <?php
+        $paginated = $summary;
+        require dirname(__DIR__, 2) . '/components/admin-pagination.php';
+        ?>
 
         <div
             class="alert alert-info reports-empty-state d-none"
@@ -190,7 +198,7 @@ $totalAmount = $summary['total_amount'] ?? '0';
             aria-live="polite"
             data-report-search-empty
         >
-            No report rows match your search.
+            No report rows match your search on this page.
         </div>
 
     <?php endif; ?>
