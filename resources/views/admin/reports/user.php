@@ -7,7 +7,13 @@ declare(strict_types=1);
 /** @var list<string> $errors */
 
 $user = $drillDown['user'] ?? [];
-$orders = $drillDown['orders'] ?? [];
+$ordersPage = $drillDown['orders'] ?? [
+    'items' => [],
+    'total' => 0,
+    'page' => 1,
+    'per_page' => 15,
+];
+$orders = $ordersPage['items'] ?? [];
 $summary = $drillDown['summary'] ?? [];
 $errors = $errors ?? [];
 $filters = $filters ?? [];
@@ -166,6 +172,11 @@ $exportQuery = $query([
                 </tbody>
             </table>
         </div>
+
+        <?php
+        $paginated = $ordersPage;
+        require dirname(__DIR__, 2) . '/components/admin-pagination.php';
+        ?>
 
     <?php endif; ?>
 </section>
