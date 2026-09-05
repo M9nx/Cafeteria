@@ -26,8 +26,28 @@ $e = static fn (mixed $value): string =>
                 </thead>
                 <tbody>
                     <?php foreach ($items as $item): ?>
+                        <?php
+                        $itemName = (string) ($item['product_name_snapshot'] ?? '');
+                        $itemImage = \Cafeteria\Support\PublicFileUrl::fromStoredPath(
+                            isset($item['product_image_path'])
+                                ? (string) $item['product_image_path']
+                                : null
+                        );
+                        ?>
                         <tr>
-                            <td><?= $e($item['product_name_snapshot'] ?? '') ?></td>
+                            <td>
+                                <div class="order-line-product">
+                                    <img
+                                        class="admin-thumb"
+                                        src="<?= $e($itemImage) ?>"
+                                        alt=""
+                                        width="40"
+                                        height="40"
+                                        loading="lazy"
+                                    >
+                                    <span><?= $e($itemName) ?></span>
+                                </div>
+                            </td>
                             <td><?= $e($item['unit_price_snapshot'] ?? '') ?></td>
                             <td><?= (int) ($item['quantity'] ?? 0) ?></td>
                             <td><?= $e($item['line_total'] ?? '') ?></td>
