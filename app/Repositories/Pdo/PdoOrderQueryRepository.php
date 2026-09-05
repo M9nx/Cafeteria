@@ -269,16 +269,19 @@ final class PdoOrderQueryRepository implements OrderQueryRepositoryInterface
 
         $itemsStatement = $this->pdo->prepare(
             'SELECT
-                id,
-                order_id,
-                product_id,
-                product_name_snapshot,
-                unit_price_snapshot,
-                quantity,
-                line_total
-             FROM order_items
-             WHERE order_id = :order_id
-             ORDER BY id ASC'
+                oi.id,
+                oi.order_id,
+                oi.product_id,
+                oi.product_name_snapshot,
+                oi.unit_price_snapshot,
+                oi.quantity,
+                oi.line_total,
+                p.image_path AS product_image_path
+             FROM order_items oi
+             LEFT JOIN products p
+                 ON p.id = oi.product_id
+             WHERE oi.order_id = :order_id
+             ORDER BY oi.id ASC'
         );
 
         $itemsStatement->execute([
