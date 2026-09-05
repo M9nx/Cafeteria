@@ -21,7 +21,8 @@ interface ProductRepositoryInterface
     */
    public function paginateAvailable(
        int $page = 1,
-       int $perPage = 15
+       int $perPage = 15,
+       ?int $categoryId = null,
    ): array;
 
     /**
