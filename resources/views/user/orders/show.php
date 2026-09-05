@@ -54,7 +54,10 @@ $e = static fn (mixed $value): string =>
             method="POST"
             action="/orders/<?= (int) ($order['id'] ?? 0) ?>/cancel"
             class="mt-4"
-            onsubmit="return confirm('Cancel this order?');"
+            data-confirm="Cancel this order? This cannot be undone."
+            data-confirm-title="Cancel order"
+            data-confirm-label="Cancel order"
+            data-confirm-tone="danger"
         >
             <?php if (isset($csrfField) && is_string($csrfField)): ?>
                 <?= $csrfField ?>
