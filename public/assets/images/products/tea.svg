@@ -1,8 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Tea">
-  <rect width="320" height="240" fill="#f3eee6"/>
-  <ellipse cx="160" cy="176" rx="70" ry="12" fill="#d6c7b2"/>
-  <path d="M96 92h110c8 0 16 8 16 20v38c0 28-28 48-62 48s-62-20-62-48V112c0-11 8-20 16-20z" fill="#f8fafc" stroke="#334155" stroke-width="4"/>
-  <path d="M222 118c18 2 28 16 24 32-4 16-20 24-36 22" fill="none" stroke="#334155" stroke-width="4" stroke-linecap="round"/>
-  <path d="M148 78c8-18 28-18 36 0" fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
-  <path d="M168 70c6-14 20-14 26 0" fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Tea">
+  <defs>
+    <linearGradient id="teaBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8f0fe"/>
+      <stop offset="100%" stop-color="#f8fbff"/>
+    </linearGradient>
+    <linearGradient id="teaLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6d7a8"/>
+      <stop offset="100%" stop-color="#c58b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#teaBg)"/>
+  <ellipse cx="320" cy="340" rx="150" ry="22" fill="#c7d7f5" opacity="0.8"/>
+  <path d="M210 150h180c18 0 32 14 32 32v90c0 48-52 84-122 84s-122-36-122-84v-90c0-18 14-32 32-32z" fill="#fff" stroke="#1e3a8a" stroke-width="8"/>
+  <path d="M230 188h140c8 0 14 6 14 14v70c0 34-36 58-84 58s-84-24-84-58v-70c0-8 6-14 14-14z" fill="url(#teaLiquid)"/>
+  <path d="M422 190c42 4 64 36 54 68-10 34-48 52-86 48" fill="none" stroke="#1e3a8a" stroke-width="10" stroke-linecap="round"/>
+  <path d="M290 120c16-36 54-36 70 0" fill="none" stroke="#93c5fd" stroke-width="6" stroke-linecap="round"/>
+  <path d="M330 108c12-28 40-28 52 0" fill="none" stroke="#93c5fd" stroke-width="6" stroke-linecap="round"/>
 </svg>
