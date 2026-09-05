@@ -18,6 +18,7 @@ require $root . '/database/seeds/RoomsSeeder.php';
 require $root . '/database/seeds/CategoriesSeeder.php';
 require $root . '/database/seeds/ProductsSeeder.php';
 require $root . '/database/seeds/UsersSeeder.php';
+require $root . '/database/seeds/OrdersSeeder.php';
 
 try {
     Environment::load($root . '/.env');
