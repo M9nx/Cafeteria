@@ -19,35 +19,41 @@ $imagePath = \Cafeteria\Support\PublicFileUrl::fromStoredPath(
 ?>
 
 <article
-    class="card h-100 product-card"
+    class="product-card"
+    data-purpose="product-card"
     data-product-id="<?= $productId ?>"
     data-product-name="<?= $e($name) ?>"
     data-product-price="<?= $e($price) ?>"
 >
-    <img
-        src="<?= $e($imagePath) ?>"
-        class="card-img-top"
-        alt="<?= $e($name) ?>"
-    >
+    <div class="product-card-media">
+        <img
+            src="<?= $e($imagePath) ?>"
+            alt="<?= $e($name) ?>"
+            loading="lazy"
+        >
+    </div>
 
-    <div class="card-body d-flex flex-column">
-        <h2 class="h5 card-title mb-1">
-            <?= $e($name) ?>
-        </h2>
+    <div class="product-card-body">
+        <div>
+            <?php if ($category !== ''): ?>
+                <p class="product-category">
+                    <?= $e($category) ?>
+                </p>
+            <?php endif; ?>
 
-        <?php if ($category !== ''): ?>
-            <p class="text-muted small mb-2">
-                <?= $e($category) ?>
+            <h3 class="product-card-title">
+                <?= $e($name) ?>
+            </h3>
+
+            <p class="product-price">
+                <span class="product-price-value"><?= $e($price) ?></span>
+                <span class="product-price-currency">EGP</span>
             </p>
-        <?php endif; ?>
-
-        <p class="fw-semibold mb-3">
-            <?= $e($price) ?>
-        </p>
+        </div>
 
         <button
             type="button"
-            class="btn btn-primary mt-auto add-to-cart"
+            class="btn product-add-btn add-to-cart"
             data-product-id="<?= $productId ?>"
         >
             Add to cart
