@@ -9,6 +9,9 @@ interface ReportRepositoryInterface
     /**
      * Per-user totals for the checks summary report.
      *
+     * When $perPage is null, all matching user rows are returned (export / aggregates).
+     * When set, results are limited with page/per_page metadata.
+     *
      * @param array{
      *     from?: string|null,
      *     to?: string|null,
@@ -16,17 +19,26 @@ interface ReportRepositoryInterface
      *     include_cancelled?: bool
      * } $filter
      *
-     * @return array{users: list<array{
-     *     user_id: int|string,
-     *     user_name: string,
-     *     order_count: int|string,
-     *     total_amount: string|float|int
-     * }>}
+     * @return array{
+     *     users: list<array{
+     *         user_id: int|string,
+     *         user_name: string,
+     *         order_count: int|string,
+     *         total_amount: string|float|int
+     *     }>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int,
+     *     total_orders: int,
+     *     total_amount: string
+     * }
      */
-    public function summarize(array $filter): array;
+    public function summarize(array $filter, int $page = 1, ?int $perPage = null): array;
 
     /**
      * Orders for a single user within validated report filters.
+     *
+     * When $perPage is null, all matching orders are returned.
      *
      * @param array{
      *     from?: string|null,
@@ -34,9 +46,19 @@ interface ReportRepositoryInterface
      *     include_cancelled?: bool
      * } $filter
      *
-     * @return list<array<string, mixed>>
+     * @return array{
+     *     items: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int
+     * }
      */
-    public function ordersForUser(int $userId, array $filter): array;
+    public function ordersForUser(
+        int $userId,
+        array $filter,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array;
 
     /**
      * Single order detail for report drill-down when the order matches filters.
