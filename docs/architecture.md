@@ -59,12 +59,20 @@ Each module registers routes on the shared `$router` instance passed from bootst
 
 | Module | Controllers | Services | Repositories |
 |---|---|---|---|
-| Auth | `Controllers/Auth/` | `AuthService` | `UserRepository` |
-| Users | `Controllers/Admin/` | `UserService` | `UserRepository` |
-| Catalog | `Controllers/Admin/` | `CatalogService` | `ProductRepository`, `CategoryRepository` |
-| Ordering | `Controllers/User/`, `Controllers/Admin/` | `OrderService` | `OrderRepository` |
-| Fulfillment | `Controllers/Admin/` | `OrderStatusService` | `OrderRepository` |
-| Reporting | `Controllers/Admin/` | `ReportService` | read repositories |
+| Auth | `Controllers/Auth/` | `AuthService`, `PasswordResetService` | `PdoAuthUserRepository`, `PdoPasswordResetTokenRepository` |
+| Users / Rooms | `UserController`, `RoomController` | `UserService`, `RoomService` | `PdoAdminUserRepository`, `PdoRoomRepository` |
+| Catalog admin | `CategoryController`, `ProductController` | `CategoryService`, `ProductService` | `PdoCategoryRepository`, `PdoProductRepository` |
+| Catalogue / orders | `CatalogController`, `OrderController` | `OrderService`, `UserOrderQueryService`, `OrderStatusService` | product/order query & command repos |
+| Fulfillment / on-behalf | `FulfillmentController`, `AdminOrderController` | `OrderStatusService`, `OrderService` | order repos |
+| Reporting | `ReportController` | `ReportQueryService`, `ReportExportService` | `PdoReportRepository` |
+
+## Deep documentation
+
+| Doc | Contents |
+|-----|----------|
+| [system-through-day-5-architecture-guide.md](system-through-day-5-architecture-guide.md) | Numbered C4/DFD/sequence atlas (Figures 1–23) |
+| [request-lifecycle-and-codebase-atlas.md](request-lifecycle-and-codebase-atlas.md) | Request paths, DI, file purposes, class/method inventory |
+| [database-schema-guide.md](database-schema-guide.md) | Tables, constraints, indexes, ER explanation |
 
 ## Directory map
 
