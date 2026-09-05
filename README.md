@@ -142,7 +142,9 @@ Beginner walkthroughs of what each phase built, plus a picture-first atlas of th
 | [Day 3 catalog and ordering](docs/day-3-catalog-ordering-guide.md) | P2 | Catalogue, cart, placement, snapshots |
 | [Day 4 order lifecycle](docs/day-4-order-lifecycle-guide.md) | P3 | History, cancel, queue, on-behalf |
 | [Day 5 reporting and security](docs/day-5-reporting-security-guide.md) | P4 | Checks, drill-down, CSV, mailer |
-| [Architecture atlas through Day 5](docs/system-through-day-5-architecture-guide.md) | P0–P4 | C4, DFD, sequences, queue/state, route map |
+| [Architecture atlas through Day 5](docs/system-through-day-5-architecture-guide.md) | P0–P4 | Numbered C4/DFD/sequences (Figures 1–23), current `main` |
+| [Request lifecycle & codebase atlas](docs/request-lifecycle-and-codebase-atlas.md) | All phases | HTTP lifecycle, DI, file purposes, classes/methods |
+| [Database & schema guide](docs/database-schema-guide.md) | P0–P4 | Tables, constraints, indexes, ER |
 
 ## Contributing
 
