@@ -9,7 +9,7 @@ use PDO;
 final class CategoriesSeeder
 {
     /** @var list<string> */
-    private const CATEGORIES = ['Hot Drinks', 'Cold Drinks', 'Snacks'];
+    private const CATEGORIES = ['Hot Drinks', 'Cold Drinks', 'Snacks', 'Bakery'];
 
     public function __construct(private readonly PDO $connection) {}
 
