@@ -115,7 +115,15 @@ h2,
 
 .login-brand {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
+}
+
+.login-brand-logo {
+    display: block;
+    width: min(11rem, 56vw);
+    height: auto;
+    margin: 0 auto;
+    border-radius: 1.25rem;
 }
 
 .login-brand-name {
@@ -305,6 +313,18 @@ h2,
     box-shadow:
         0 0 0 1px color-mix(in srgb, var(--app-border) 80%, transparent),
         0 4px 12px rgba(143, 61, 53, 0.28);
+}
+
+.site-navbar-logo {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    object-fit: contain;
+    border-radius: 0.85rem;
+    background: #fdf8ee;
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--app-border) 70%, transparent),
+        0 2px 8px rgba(141, 75, 50, 0.12);
 }
 
 .site-navbar-brand-text {
@@ -1054,6 +1074,78 @@ a:focus-visible,
         width: 100%;
         justify-content: space-between;
     }
+}
+
+.admin-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--app-border, #e7e0d6) 80%, transparent);
+    background: color-mix(in srgb, var(--app-cream, #f5f2eb) 70%, #fff);
+    display: block;
+}
+
+.admin-thumb--empty {
+    display: inline-block;
+    background: color-mix(in srgb, var(--app-cream, #f5f2eb) 85%, #ddd);
+}
+
+.order-line-product {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.order-line-product .admin-thumb {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.room-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.room-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--app-border, #e7e0d6) 90%, #d6d3d1);
+    border-radius: 0.85rem;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.room-pick img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 0.55rem;
+    display: block;
+}
+
+.room-pick span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #44403c;
+    text-align: center;
+    padding: 0 0.2rem 0.2rem;
+}
+
+.room-pick:has(input:checked),
+.room-pick.is-selected {
+    border-color: var(--app-primary, #9b4a3e);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-primary, #9b4a3e) 45%, transparent);
+}
+
+.room-pick:hover {
+    border-color: color-mix(in srgb, var(--app-primary, #9b4a3e) 55%, #d6d3d1);
 }
 
 @media (prefers-reduced-motion: reduce) {
