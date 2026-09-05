@@ -19,6 +19,7 @@ final class SeedRunner
             new CategoriesSeeder($this->connection),
             new ProductsSeeder($this->connection),
             new UsersSeeder($this->connection),
+            new OrdersSeeder($this->connection),
         ];
 
         $applied = [];
