@@ -9,12 +9,20 @@ use RuntimeException;
 
 final class ProductsSeeder
 {
-    /** @var list<array{name:string,category:string,price:string,image:?string}> */
+    /** @var list<array{name:string,category:string,price:string,image:string}> */
     private const PRODUCTS = [
-        ['name' => 'Tea', 'category' => 'Hot Drinks', 'price' => '10.00', 'image' => '/assets/images/products/tea.svg'],
-        ['name' => 'Coffee', 'category' => 'Hot Drinks', 'price' => '15.00', 'image' => '/assets/images/products/coffee.svg'],
-        ['name' => 'Cola', 'category' => 'Cold Drinks', 'price' => '20.00', 'image' => '/assets/images/products/cola.svg'],
-        ['name' => 'Chips', 'category' => 'Snacks', 'price' => '12.50', 'image' => '/assets/images/products/chips.svg'],
+        ['name' => 'Tea', 'category' => 'Hot Drinks', 'price' => '10.00', 'image' => '/assets/images/products/tea.jpg'],
+        ['name' => 'Coffee', 'category' => 'Hot Drinks', 'price' => '15.00', 'image' => '/assets/images/products/coffee.jpg'],
+        ['name' => 'Hot Chocolate', 'category' => 'Hot Drinks', 'price' => '18.00', 'image' => '/assets/images/products/hot-chocolate.jpg'],
+        ['name' => 'Cola', 'category' => 'Cold Drinks', 'price' => '20.00', 'image' => '/assets/images/products/cola.jpg'],
+        ['name' => 'Orange Juice', 'category' => 'Cold Drinks', 'price' => '22.00', 'image' => '/assets/images/products/orange-juice.jpg'],
+        ['name' => 'Iced Latte', 'category' => 'Cold Drinks', 'price' => '25.00', 'image' => '/assets/images/products/iced-latte.jpg'],
+        ['name' => 'Water', 'category' => 'Cold Drinks', 'price' => '8.00', 'image' => '/assets/images/products/water.jpg'],
+        ['name' => 'Chips', 'category' => 'Snacks', 'price' => '12.50', 'image' => '/assets/images/products/chips.jpg'],
+        ['name' => 'Cookies', 'category' => 'Snacks', 'price' => '14.00', 'image' => '/assets/images/products/cookies.jpg'],
+        ['name' => 'Sandwich', 'category' => 'Snacks', 'price' => '35.00', 'image' => '/assets/images/products/sandwich.jpg'],
+        ['name' => 'Croissant', 'category' => 'Bakery', 'price' => '16.00', 'image' => '/assets/images/products/croissant.jpg'],
+        ['name' => 'Donut', 'category' => 'Bakery', 'price' => '12.00', 'image' => '/assets/images/products/donut.jpg'],
     ];
 
     public function __construct(private readonly PDO $connection) {}
@@ -44,18 +52,16 @@ final class ProductsSeeder
             if ($existingId !== false) {
                 $update = $this->connection->prepare(
                     'UPDATE products
-                     SET image_path = :image_path
-                     WHERE id = :id
-                       AND (
-                            image_path IS NULL
-                            OR image_path = \'\'
-                            OR image_path = :placeholder
-                       )'
+                     SET image_path = :image_path,
+                         price = :price,
+                         is_available = 1,
+                         updated_at = CURRENT_TIMESTAMP
+                     WHERE id = :id'
                 );
                 $update->execute([
                     'image_path' => $product['image'],
+                    'price' => $product['price'],
                     'id' => $existingId,
-                    'placeholder' => '/assets/images/products/placeholder.svg',
                 ]);
 
                 continue;
