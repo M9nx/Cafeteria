@@ -7,7 +7,7 @@ declare(strict_types=1);
 /** @var object|null $currentUser Optional user object with isAdmin(): bool */
 /** @var array{type?: string, message?: string}|null $flash */
 
-$pageTitle = htmlspecialchars($title ?? 'Cafeteria', ENT_QUOTES, 'UTF-8');
+$pageTitle = htmlspecialchars($title ?? 'Fondo2na', ENT_QUOTES, 'UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +15,12 @@ $pageTitle = htmlspecialchars($title ?? 'Cafeteria', ENT_QUOTES, 'UTF-8');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $pageTitle ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
         rel="stylesheet"
@@ -22,6 +28,7 @@ $pageTitle = htmlspecialchars($title ?? 'Cafeteria', ENT_QUOTES, 'UTF-8');
         crossorigin="anonymous"
     >
     <link href="/assets/css/app.css" rel="stylesheet">
+    <link href="/assets/css/notifications.css" rel="stylesheet">
 </head>
 <body class="app-body d-flex flex-column min-vh-100">
     <?php require dirname(__DIR__) . '/components/navbar.php'; ?>
@@ -33,11 +40,13 @@ $pageTitle = htmlspecialchars($title ?? 'Cafeteria', ENT_QUOTES, 'UTF-8');
         </div>
     </main>
 
-    <footer class="app-footer border-top py-3 mt-auto">
-        <div class="container text-center text-muted small">
-            Cafeteria Management System
+    <footer class="app-footer py-3 mt-auto">
+        <div class="container text-center small">
+            © Fondo2na Cafeteria Management System. All rights reserved.
         </div>
     </footer>
+
+    <?php require dirname(__DIR__) . '/components/confirm-modal.php'; ?>
 
     <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
