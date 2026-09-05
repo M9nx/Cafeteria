@@ -22,10 +22,12 @@ try {
     $pdo = (new ConnectionFactory())->make(require $root . '/config/database.php');
 
     $expect = [
-        'rooms' => 3,
-        'categories' => 3,
-        'products' => 4,
-        'users' => 2,
+        'rooms' => 4,
+        'categories' => 4,
+        'products' => 12,
+        'users' => 6,
+        'orders' => 12,
+        'order_items' => 12,
     ];
 
     foreach ($expect as $table => $count) {
