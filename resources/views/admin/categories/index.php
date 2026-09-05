@@ -40,6 +40,7 @@ $e = static fn (mixed $value): string =>
             <caption class="visually-hidden">Product categories</caption>
             <thead>
                 <tr>
+                    <th scope="col">Image</th>
                     <th scope="col">ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Status</th>
@@ -48,9 +49,27 @@ $e = static fn (mixed $value): string =>
             </thead>
             <tbody>
                 <?php foreach ($items as $category): ?>
+                    <?php
+                    $categoryName = (string) ($category['name'] ?? '');
+                    $categoryImage = \Cafeteria\Support\DemoImageMap::category($categoryName);
+                    ?>
                     <tr>
+                        <td>
+                            <?php if ($categoryImage !== null): ?>
+                                <img
+                                    class="admin-thumb"
+                                    src="<?= $e($categoryImage) ?>"
+                                    alt=""
+                                    width="48"
+                                    height="48"
+                                    loading="lazy"
+                                >
+                            <?php else: ?>
+                                <span class="admin-thumb admin-thumb--empty" aria-hidden="true"></span>
+                            <?php endif; ?>
+                        </td>
                         <td><?= (int) ($category['id'] ?? 0) ?></td>
-                        <td><?= $e($category['name'] ?? '') ?></td>
+                        <td><?= $e($categoryName) ?></td>
                         <td>
                             <?php if ((int) ($category['is_active'] ?? 0) === 1): ?>
                                 <span class="badge text-bg-success">Active</span>
