@@ -66,12 +66,18 @@ Open `/` and sign in. Full seed notes, including rebuild safety: [docs/database/
 
 ### Demo accounts (local / test only)
 
-Never use these in production.
+Never use these in production. Shared password for all seeded accounts: `DevPassword123!`
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@example.test` | `DevPassword123!` |
-| User | `user@example.test` | `DevPassword123!` |
+| Role | Name | Email |
+|------|------|-------|
+| Admin | Demo Admin | `admin@example.test` |
+| User | Demo User | `user@example.test` |
+| Admin | Mounir | `revolutionary516@uberip.com` |
+| Admin | Salma Fathy | `salmafathy274@gmail.com` |
+| User | Hana | `hanakotb14@gmail.com` |
+| User | Basha Gebril | `bashawahed573@gmail.com` |
+
+Seed also creates demo orders (Processing / Out for delivery / Done / Cancelled) for every user above.
 
 ## Commands
 
