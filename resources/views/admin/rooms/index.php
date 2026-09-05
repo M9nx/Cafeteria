@@ -40,6 +40,7 @@ $e = static fn (mixed $value): string =>
             <caption class="visually-hidden">Cafeteria rooms</caption>
             <thead>
                 <tr>
+                    <th scope="col">Image</th>
                     <th scope="col">ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Status</th>
@@ -48,9 +49,27 @@ $e = static fn (mixed $value): string =>
             </thead>
             <tbody>
                 <?php foreach ($items as $room): ?>
+                    <?php
+                    $roomName = (string) ($room['name'] ?? '');
+                    $roomImage = \Cafeteria\Support\DemoImageMap::room($roomName);
+                    ?>
                     <tr>
+                        <td>
+                            <?php if ($roomImage !== null): ?>
+                                <img
+                                    class="admin-thumb"
+                                    src="<?= $e($roomImage) ?>"
+                                    alt=""
+                                    width="48"
+                                    height="48"
+                                    loading="lazy"
+                                >
+                            <?php else: ?>
+                                <span class="admin-thumb admin-thumb--empty" aria-hidden="true"></span>
+                            <?php endif; ?>
+                        </td>
                         <td><?= (int) ($room['id'] ?? 0) ?></td>
-                        <td><?= $e($room['name'] ?? '') ?></td>
+                        <td><?= $e($roomName) ?></td>
                         <td>
                             <?php if ((int) ($room['is_active'] ?? 0) === 1): ?>
                                 <span class="badge text-bg-success">Active</span>
