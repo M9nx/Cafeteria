@@ -52,6 +52,7 @@ $flash = $flash ?? [];
             <table class="table table-striped align-middle">
                 <thead>
                     <tr>
+                        <th scope="col">Image</th>
                         <th scope="col">Name</th>
                         <th scope="col">Category</th>
                         <th scope="col">Price</th>
@@ -62,7 +63,22 @@ $flash = $flash ?? [];
 
                 <tbody>
                     <?php foreach ($items as $product): ?>
+                        <?php
+                        $productImage = \Cafeteria\Support\PublicFileUrl::fromStoredPath(
+                            isset($product['image_path']) ? (string) $product['image_path'] : null
+                        );
+                        ?>
                         <tr>
+                            <td>
+                                <img
+                                    class="admin-thumb"
+                                    src="<?= $e($productImage) ?>"
+                                    alt=""
+                                    width="48"
+                                    height="48"
+                                    loading="lazy"
+                                >
+                            </td>
                             <td>
                                 <?= $e($product['name'] ?? '') ?>
                             </td>
