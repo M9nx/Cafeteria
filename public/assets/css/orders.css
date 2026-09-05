@@ -87,15 +87,26 @@
 }
 
 .order-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     border: 1px solid var(--order-border);
     border-radius: 0.75rem;
     background: #fff;
     color: #57534e;
     font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.5rem 1rem;
+    padding: 0.35rem 0.85rem 0.35rem 0.35rem;
     white-space: nowrap;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.order-chip-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 0.45rem;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
 .order-chip:hover {
