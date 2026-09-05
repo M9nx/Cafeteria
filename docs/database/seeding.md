@@ -26,23 +26,34 @@ Seeders run in dependency-safe order:
 2. Categories
 3. Products
 4. Users
+5. Orders (demo orders for every seed user)
+
+## Seed catalogue images
+
+Demo product/category/room photos live under `public/assets/images/{products,categories,rooms}/` (Unsplash JPEGs for graduation demos). Product seed rows point at `/assets/images/products/*.jpg`. Category and room thumbs are mapped by name in `DemoImageMap` (no DB image columns).
 
 ## Idempotency
 
 `php database/seed.php` may be run twice without creating duplicate rows.
 
 - Rooms and categories upsert on unique `name`.
-- Products skip insert when the same `(category_id, name)` already exists.
+- Products upsert image/price when the same `(category_id, name)` already exists.
 - Users upsert on unique `email`.
+- Orders skip a user when that user already has notes starting with `[demo-seed]`.
 
 ## Demo credentials (development only)
 
-These accounts exist only for local and test databases. **Never use them in production.**
+These accounts exist only for local and test databases. **Never use them in production.**  
+Password for all: `DevPassword123!`
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@example.test` | `DevPassword123!` |
-| User | `user@example.test` | `DevPassword123!` |
+| Role | Name | Email |
+|------|------|-------|
+| Admin | Demo Admin | `admin@example.test` |
+| User | Demo User | `user@example.test` |
+| Admin | Mounir | `revolutionary516@uberip.com` |
+| Admin | Salma Fathy | `salmafathy274@gmail.com` |
+| User | Hana | `hanakotb14@gmail.com` |
+| User | Basha Gebril | `bashawahed573@gmail.com` |
 
 ## Rebuild safety
 
