@@ -150,34 +150,43 @@ require dirname(__DIR__, 2)
                     </div>
 
                     <div class="mb-4">
-                        <label
-                            for="room_id"
-                            class="form-label"
-                        >
+                        <span class="form-label" id="admin-room-picker-label">
                             Delivery room
-                        </label>
-
-                        <select
-                            id="room_id"
-                            name="room_id"
-                            class="form-select"
-                            required
+                        </span>
+                        <div
+                            class="room-picker mt-2"
+                            role="radiogroup"
+                            aria-labelledby="admin-room-picker-label"
                         >
-                            <option value="">
-                                Select a room
-                            </option>
-
                             <?php foreach ($rooms as $room): ?>
-                                <option
-                                    value="<?= $e($room['id']) ?>"
-                                    <?= $selectedRoomId === (int) $room['id']
-                                        ? 'selected'
-                                        : '' ?>
-                                >
-                                    <?= $e($room['name']) ?>
-                                </option>
+                                <?php
+                                $roomId = (int) ($room['id'] ?? 0);
+                                $roomName = (string) ($room['name'] ?? '');
+                                $roomImage = \Cafeteria\Support\DemoImageMap::room($roomName);
+                                $isSelected = $selectedRoomId === $roomId;
+                                ?>
+                                <label class="room-pick<?= $isSelected ? ' is-selected' : '' ?>">
+                                    <input
+                                        type="radio"
+                                        name="room_id"
+                                        value="<?= $e($roomId) ?>"
+                                        class="visually-hidden"
+                                        required
+                                        <?= $isSelected ? 'checked' : '' ?>
+                                    >
+                                    <?php if ($roomImage !== null): ?>
+                                        <img
+                                            src="<?= $e($roomImage) ?>"
+                                            alt=""
+                                            width="72"
+                                            height="54"
+                                            loading="lazy"
+                                        >
+                                    <?php endif; ?>
+                                    <span><?= $e($roomName) ?></span>
+                                </label>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
                     </div>
 
                     <div class="mb-4">
