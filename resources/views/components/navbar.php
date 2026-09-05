@@ -38,8 +38,14 @@ $e = static fn (mixed $value): string =>
         aria-label="Main navigation"
     >
         <div class="site-navbar-brand">
-            <a class="navbar-brand" href="/">
-                <span class="site-navbar-mark" aria-hidden="true"></span>
+            <a class="navbar-brand" href="/" aria-label="Fondo2na Cafeteria home">
+                <img
+                    class="site-navbar-logo"
+                    src="/assets/images/brand/fondo2na-logo.png"
+                    alt="Fondo2na Cafeteria"
+                    width="48"
+                    height="48"
+                >
                 <span class="site-navbar-brand-text">
                     <span class="site-navbar-title">Fondo2na</span>
                     <span class="site-navbar-tag">Cafeteria</span>
