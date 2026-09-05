@@ -13,8 +13,13 @@ $errors = $errors ?? null;
 <section class="login-section" aria-labelledby="login-heading">
 
     <div class="login-brand">
-        <div class="login-brand-name">Fondo2na</div>
-        <div class="login-brand-line"></div>
+        <img
+            class="login-brand-logo"
+            src="/assets/images/brand/fondo2na-logo.png"
+            alt="Fondo2na Cafeteria"
+            width="160"
+            height="160"
+        >
     </div>
 
     <div class="login-intro">
