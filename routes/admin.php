@@ -10,6 +10,7 @@ use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\ProductController;
 use Cafeteria\Controllers\Admin\ReportController;
+use Cafeteria\Controllers\Admin\RoomController;
 use Cafeteria\Controllers\Admin\UserController;
 
 $router->get(
@@ -45,6 +46,42 @@ $router->post(
 $router->post(
     '/admin/categories/{id}/deactivate',
     [CategoryController::class, 'deactivate'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/rooms',
+    [RoomController::class, 'index'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/rooms/create',
+    [RoomController::class, 'create'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/rooms',
+    [RoomController::class, 'store'],
+    [$adminMiddleware]
+);
+
+$router->get(
+    '/admin/rooms/{id}/edit',
+    [RoomController::class, 'edit'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/rooms/{id}/update',
+    [RoomController::class, 'update'],
+    [$adminMiddleware]
+);
+
+$router->post(
+    '/admin/rooms/{id}/deactivate',
+    [RoomController::class, 'deactivate'],
     [$adminMiddleware]
 );
 

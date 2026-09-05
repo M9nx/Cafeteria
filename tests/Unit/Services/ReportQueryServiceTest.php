@@ -64,6 +64,11 @@ final class ReportQueryServiceTest extends TestCase
                     'total_amount' => '10.00',
                 ],
             ],
+            'total' => 2,
+            'page' => 1,
+            'per_page' => 15,
+            'total_orders' => 3,
+            'total_amount' => '40.50',
         ];
 
         $service = new ReportQueryService(
@@ -124,7 +129,8 @@ final class ReportQueryServiceTest extends TestCase
 
         self::assertSame(1, $result['user']['id']);
         self::assertSame('Report User', $result['user']['name']);
-        self::assertSame([], $result['orders']);
+        self::assertSame([], $result['orders']['items']);
+        self::assertSame(0, $result['orders']['total']);
         self::assertSame(0, $result['summary']['order_count']);
     }
 
@@ -147,18 +153,42 @@ final class RecordingReportRepository implements ReportRepositoryInterface
     public ?array $lastSummarizeFilters = null;
 
     /** @var array<string, mixed> */
-    public array $summarizeResult = ['users' => []];
+    public array $summarizeResult = [
+        'users' => [],
+        'total' => 0,
+        'page' => 1,
+        'per_page' => 15,
+        'total_orders' => 0,
+        'total_amount' => '0.00',
+    ];
 
-    public function summarize(array $filters): array
-    {
+    public function summarize(
+        array $filters,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
         $this->lastSummarizeFilters = $filters;
 
-        return $this->summarizeResult;
+        $result = $this->summarizeResult;
+        $result['page'] = $page;
+        $result['per_page'] = $perPage ?? max(1, count($result['users'] ?? []));
+        $result['total'] = $result['total'] ?? count($result['users'] ?? []);
+
+        return $result;
     }
 
-    public function ordersForUser(int $userId, array $filters): array
-    {
-        return [];
+    public function ordersForUser(
+        int $userId,
+        array $filters,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
+        return [
+            'items' => [],
+            'total' => 0,
+            'page' => $page,
+            'per_page' => $perPage ?? 1,
+        ];
     }
 
     public function orderDetailsForReport(int $orderId, array $filters): ?array

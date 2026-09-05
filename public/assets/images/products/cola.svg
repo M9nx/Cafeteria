@@ -1,7 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Cola">
-  <rect width="320" height="240" fill="#f4e9e6"/>
-  <path d="M132 44h56l8 18v132c0 14-16 22-36 22s-36-8-36-22V62z" fill="#b91c1c"/>
-  <rect x="136" y="70" width="48" height="28" rx="4" fill="#f8fafc"/>
-  <rect x="140" y="44" width="40" height="16" rx="4" fill="#111827"/>
-  <ellipse cx="160" cy="196" rx="36" ry="8" fill="#7f1d1d"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Cola">
+  <defs>
+    <linearGradient id="colaBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8e9e7"/>
+      <stop offset="100%" stop-color="#fff7f5"/>
+    </linearGradient>
+    <linearGradient id="colaBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#colaBg)"/>
+  <ellipse cx="320" cy="350" rx="90" ry="16" fill="#e4b4ae"/>
+  <path d="M268 70h104l18 36v220c0 28-34 48-70 48s-70-20-70-48V106z" fill="url(#colaBody)"/>
+  <rect x="278" y="78" width="84" height="28" rx="8" fill="#111827"/>
+  <rect x="286" y="130" width="68" height="54" rx="10" fill="#f8fafc"/>
+  <circle cx="320" cy="250" r="18" fill="#fca5a5" opacity="0.55"/>
+  <circle cx="298" cy="286" r="10" fill="#fecaca" opacity="0.55"/>
 </svg>

@@ -1,0 +1,227 @@
+/* Travel-App–style notification banners */
+
+:root {
+    --ui-notify-radius: 1rem;
+    --ui-notify-shadow: 0 10px 24px rgba(44, 34, 30, 0.08);
+    --ui-notify-padding-block: 1rem;
+    --ui-notify-padding-inline: 1rem;
+    --ui-notify-gap: 0.75rem;
+    --ui-notify-font-size: 0.875rem;
+    --ui-notify-line-height: 1.5;
+    --ui-notify-body: #334155;
+
+    --ui-notify-success-bg: #f0fdf4;
+    --ui-notify-success-border: #bbf7d0;
+    --ui-notify-success-icon-bg: #166534;
+    --ui-notify-success-icon: #ffffff;
+    --ui-notify-success-label: #3f6b54;
+    --ui-notify-success-close: #64748b;
+
+    --ui-notify-error-bg: #fef2f2;
+    --ui-notify-error-border: #fecaca;
+    --ui-notify-error-icon-bg: #991b1b;
+    --ui-notify-error-icon: #ffffff;
+    --ui-notify-error-label: #991b1b;
+    --ui-notify-error-close: #64748b;
+
+    --ui-notify-warning-bg: #fffbeb;
+    --ui-notify-warning-border: #fde68a;
+    --ui-notify-warning-icon-bg: #92400e;
+    --ui-notify-warning-icon: #ffffff;
+    --ui-notify-warning-label: #92400e;
+    --ui-notify-warning-close: #64748b;
+
+    --ui-notify-info-bg: #f5f2eb;
+    --ui-notify-info-border: #e7e0d8;
+    --ui-notify-info-icon-bg: #9b4a3e;
+    --ui-notify-info-icon: #ffffff;
+    --ui-notify-info-label: #7a382e;
+    --ui-notify-info-close: #64748b;
+}
+
+.app-flash-stack,
+.ui-flash-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.app-flash,
+.ui-notify-banner,
+.app-form-errors {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--ui-notify-gap);
+    padding: var(--ui-notify-padding-block) var(--ui-notify-padding-inline);
+    border-radius: var(--ui-notify-radius);
+    border: 1px solid transparent;
+    font-size: var(--ui-notify-font-size);
+    line-height: var(--ui-notify-line-height);
+    box-shadow: var(--ui-notify-shadow);
+    margin: 0;
+}
+
+.app-flash.alert {
+    --bs-alert-padding-x: 0;
+    --bs-alert-padding-y: 0;
+    --bs-alert-border: transparent;
+    --bs-alert-bg: transparent;
+    --bs-alert-color: inherit;
+    background: inherit;
+    border: 1px solid transparent;
+}
+
+.ui-notify__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+}
+
+.ui-notify__icon-wrap .ui-toast__icon {
+    width: 1.05rem;
+    height: 1.05rem;
+}
+
+.app-flash-body,
+.ui-notify-banner__text {
+    min-width: 0;
+}
+
+.app-flash-label {
+    margin: 0 0 0.15rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.app-flash-message,
+.app-flash-body > :last-child {
+    margin: 0;
+    font-weight: 400;
+    color: var(--ui-notify-body);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.app-flash-close,
+.app-flash .btn-close {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    opacity: 1;
+    box-shadow: none;
+    position: static;
+    background-image: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    font-weight: 400;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.app-flash-close:hover,
+.app-flash .btn-close:hover {
+    opacity: 0.7;
+}
+
+.app-flash-success {
+    background: var(--ui-notify-success-bg);
+    border-color: var(--ui-notify-success-border);
+}
+
+.app-flash-success .ui-notify__icon-wrap {
+    background: var(--ui-notify-success-icon-bg);
+    color: var(--ui-notify-success-icon);
+}
+
+.app-flash-success .app-flash-label {
+    color: var(--ui-notify-success-label);
+}
+
+.app-flash-success .app-flash-close,
+.app-flash-success .btn-close {
+    color: var(--ui-notify-success-close);
+}
+
+.app-flash-danger,
+.app-form-errors {
+    background: var(--ui-notify-error-bg);
+    border-color: var(--ui-notify-error-border);
+}
+
+.app-flash-danger .ui-notify__icon-wrap,
+.app-form-errors .ui-notify__icon-wrap {
+    background: var(--ui-notify-error-icon-bg);
+    color: var(--ui-notify-error-icon);
+}
+
+.app-flash-danger .app-flash-label,
+.app-form-errors .app-flash-label {
+    color: var(--ui-notify-error-label);
+}
+
+.app-flash-danger .app-flash-close,
+.app-flash-danger .btn-close,
+.app-form-errors .app-flash-close {
+    color: var(--ui-notify-error-close);
+}
+
+.app-flash-warning {
+    background: var(--ui-notify-warning-bg);
+    border-color: var(--ui-notify-warning-border);
+}
+
+.app-flash-warning .ui-notify__icon-wrap {
+    background: var(--ui-notify-warning-icon-bg);
+    color: var(--ui-notify-warning-icon);
+}
+
+.app-flash-warning .app-flash-label {
+    color: var(--ui-notify-warning-label);
+}
+
+.app-flash-warning .app-flash-close,
+.app-flash-warning .btn-close {
+    color: var(--ui-notify-warning-close);
+}
+
+.app-flash-info {
+    background: var(--ui-notify-info-bg);
+    border-color: var(--ui-notify-info-border);
+}
+
+.app-flash-info .ui-notify__icon-wrap {
+    background: var(--ui-notify-info-icon-bg);
+    color: var(--ui-notify-info-icon);
+}
+
+.app-flash-info .app-flash-label {
+    color: var(--ui-notify-info-label);
+}
+
+.app-flash-info .app-flash-close,
+.app-flash-info .btn-close {
+    color: var(--ui-notify-info-close);
+}
+
+.app-form-errors ul {
+    margin: 0.25rem 0 0;
+    padding-left: 1.1rem;
+    color: var(--ui-notify-body);
+}
+
+.app-form-errors .alert-link {
+    color: #7f1d1d;
+    font-weight: 700;
+}

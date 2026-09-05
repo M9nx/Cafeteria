@@ -46,17 +46,36 @@ $pageUrl = static function (int $targetPage) use ($paginationQuery): string {
     require dirname(__DIR__, 2) . '/components/form-errors.php';
     ?>
 
-    <form method="GET" action="/orders" class="row g-3 mb-4">
+    <form
+        method="GET"
+        action="/orders"
+        class="app-filter-bar order-filter-bar row g-3"
+        aria-label="Order date filters"
+    >
         <div class="col-md-4">
             <label for="from" class="form-label">From</label>
-            <input type="date" id="from" name="from" class="form-control" value="<?= $e($filters['from'] ?? '') ?>">
+            <input
+                type="date"
+                id="from"
+                name="from"
+                class="form-control"
+                value="<?= $e($filters['from'] ?? '') ?>"
+                autocomplete="off"
+            >
         </div>
         <div class="col-md-4">
             <label for="to" class="form-label">To</label>
-            <input type="date" id="to" name="to" class="form-control" value="<?= $e($filters['to'] ?? '') ?>">
+            <input
+                type="date"
+                id="to"
+                name="to"
+                class="form-control"
+                value="<?= $e($filters['to'] ?? '') ?>"
+                autocomplete="off"
+            >
         </div>
         <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-secondary">Filter</button>
+            <button type="submit" class="btn btn-primary">Filter</button>
         </div>
     </form>
 
@@ -112,7 +131,10 @@ $pageUrl = static function (int $targetPage) use ($paginationQuery): string {
                                             method="POST"
                                             action="/orders/<?= $orderId ?>/cancel"
                                             class="d-inline"
-                                            onsubmit="return confirm('Cancel this order?');"
+                                            data-confirm="Cancel this order? This cannot be undone."
+                                            data-confirm-title="Cancel order"
+                                            data-confirm-label="Cancel order"
+                                            data-confirm-tone="danger"
                                         >
                                             <?php if (isset($csrfField) && is_string($csrfField)): ?>
                                                 <?= $csrfField ?>
@@ -143,24 +165,26 @@ $pageUrl = static function (int $targetPage) use ($paginationQuery): string {
             </table>
         </div>
 
-        <?php if ($totalPages > 1): ?>
-            <nav aria-label="Order history pagination">
-                <ul class="pagination">
+        <nav aria-label="Order history pagination" class="mt-3 admin-pagination">
+            <ul class="pagination mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                     <?php if ($page > 1): ?>
-                        <li class="page-item">
-                            <a class="page-link" href="<?= $e($pageUrl($page - 1)) ?>">Previous</a>
-                        </li>
+                        <a class="page-link" href="<?= $e($pageUrl($page - 1)) ?>">Previous</a>
+                    <?php else: ?>
+                        <span class="page-link">Previous</span>
                     <?php endif; ?>
-                    <li class="page-item disabled">
-                        <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
-                    </li>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
+                </li>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
                     <?php if ($page < $totalPages): ?>
-                        <li class="page-item">
-                            <a class="page-link" href="<?= $e($pageUrl($page + 1)) ?>">Next</a>
-                        </li>
+                        <a class="page-link" href="<?= $e($pageUrl($page + 1)) ?>">Next</a>
+                    <?php else: ?>
+                        <span class="page-link">Next</span>
                     <?php endif; ?>
-                </ul>
-            </nav>
-        <?php endif; ?>
+                </li>
+            </ul>
+        </nav>
     <?php endif; ?>
 </section>

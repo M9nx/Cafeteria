@@ -18,10 +18,20 @@ final class ReportQueryService
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{
+     *     users: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int,
+     *     total_orders: int,
+     *     total_amount: string
+     * }
      */
-    public function summarize(ChecksFilter $filter): array
-    {
+    public function summarize(
+        ChecksFilter $filter,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
         $errors = $this->validator->validate($filter);
 
         if ($errors !== []) {
@@ -30,56 +40,31 @@ final class ReportQueryService
             );
         }
 
-        return $this->withSummaryTotals($this->reports->summarize([
-            'from' => $filter->from,
-            'to' => $filter->to,
-            'user_id' => $filter->userId,
-            'include_cancelled' => $filter->includeCancelled,
-        ]));
-    }
-
-    /**
-     * @param array<string, mixed> $summary
-     *
-     * @return array<string, mixed>
-     */
-    private function withSummaryTotals(array $summary): array
-    {
-        $users = $summary['users'] ?? [];
-
-        if (!is_array($users)) {
-            $users = [];
-        }
-
-        $totalOrders = 0;
-        $totalAmount = 0.0;
-
-        foreach ($users as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $totalOrders += (int) ($row['order_count'] ?? 0);
-            $totalAmount += (float) ($row['total_amount'] ?? 0);
-        }
-
-        $summary['total_orders'] = $totalOrders;
-        $summary['total_amount'] = number_format(
-            $totalAmount,
-            2,
-            '.',
-            '',
+        return $this->reports->summarize(
+            [
+                'from' => $filter->from,
+                'to' => $filter->to,
+                'user_id' => $filter->userId,
+                'include_cancelled' => $filter->includeCancelled,
+            ],
+            $page,
+            $perPage,
         );
-
-        return $summary;
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array{
+     *     items: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int
+     * }
      */
     public function ordersForUser(
         int $userId,
         ChecksFilter $filter,
+        int $page = 1,
+        ?int $perPage = null,
     ): array {
         if ($userId < 1) {
             throw new InvalidArgumentException('User ID must be valid.');
@@ -93,11 +78,16 @@ final class ReportQueryService
             );
         }
 
-        return $this->reports->ordersForUser($userId, [
-            'from' => $filter->from,
-            'to' => $filter->to,
-            'include_cancelled' => $filter->includeCancelled,
-        ]);
+        return $this->reports->ordersForUser(
+            $userId,
+            [
+                'from' => $filter->from,
+                'to' => $filter->to,
+                'include_cancelled' => $filter->includeCancelled,
+            ],
+            $page,
+            $perPage,
+        );
     }
 
     /**
@@ -129,12 +119,21 @@ final class ReportQueryService
     /**
      * @return array{
      *     user: array{id: int, name: string, email: string},
-     *     orders: list<array<string, mixed>>,
+     *     orders: array{
+     *         items: list<array<string, mixed>>,
+     *         total: int,
+     *         page: int,
+     *         per_page: int
+     *     },
      *     summary: array{order_count: int, total_amount: string}
      * }
      */
-    public function drillDown(int $userId, ChecksFilter $filter): array
-    {
+    public function drillDown(
+        int $userId,
+        ChecksFilter $filter,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
         if ($userId < 1) {
             throw new InvalidArgumentException('User ID must be valid.');
         }
@@ -165,11 +164,16 @@ final class ReportQueryService
             );
         }
 
-        $orders = $this->reports->ordersForUser($userId, [
-            'from' => $filter->from,
-            'to' => $filter->to,
-            'include_cancelled' => $filter->includeCancelled,
-        ]);
+        $orders = $this->reports->ordersForUser(
+            $userId,
+            [
+                'from' => $filter->from,
+                'to' => $filter->to,
+                'include_cancelled' => $filter->includeCancelled,
+            ],
+            $page,
+            $perPage,
+        );
 
         $summary = $this->reports->summarize([
             'from' => $filter->from,

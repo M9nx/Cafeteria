@@ -70,4 +70,22 @@ final class View
 
         return $view->renderTemplate($template, $data, $layout);
     }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public static function renderToString(string $template, array $data = []): string
+    {
+        $data = array_merge(self::$shared, $data);
+
+        $basePath = dirname(__DIR__, 3) . '/resources/views';
+        $view = new self($basePath);
+        $templateFile = $view->resolveTemplate($template);
+
+        if (!is_file($templateFile)) {
+            throw new RuntimeException("View template not found: {$template}");
+        }
+
+        return $view->capture($templateFile, $data);
+    }
 }

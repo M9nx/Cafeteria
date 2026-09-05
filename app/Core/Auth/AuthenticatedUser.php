@@ -13,6 +13,7 @@ final readonly class AuthenticatedUser
         private string $email,
         private string $name,
         private Role $role,
+        private ?string $profileImagePath = null,
     ) {
     }
 
@@ -21,16 +22,27 @@ final readonly class AuthenticatedUser
      */
     public static function fromSession(array $data): self
     {
+        $profileImagePath = $data['profile_image_path'] ?? null;
+
         return new self(
             id: (int) $data['id'],
             email: (string) $data['email'],
             name: (string) $data['name'],
             role: Role::fromString((string) $data['role']),
+            profileImagePath: is_string($profileImagePath) && $profileImagePath !== ''
+                ? $profileImagePath
+                : null,
         );
     }
 
     /**
-     * @return array{id: int, email: string, name: string, role: string}
+     * @return array{
+     *     id: int,
+     *     email: string,
+     *     name: string,
+     *     role: string,
+     *     profile_image_path: ?string
+     * }
      */
     public function toSessionArray(): array
     {
@@ -39,6 +51,7 @@ final readonly class AuthenticatedUser
             'email' => $this->email,
             'name' => $this->name,
             'role' => $this->role->value,
+            'profile_image_path' => $this->profileImagePath,
         ];
     }
 
@@ -60,6 +73,11 @@ final readonly class AuthenticatedUser
     public function role(): Role
     {
         return $this->role;
+    }
+
+    public function profileImagePath(): ?string
+    {
+        return $this->profileImagePath;
     }
 
     public function isAdmin(): bool

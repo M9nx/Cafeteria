@@ -6,6 +6,7 @@ use Cafeteria\Controllers\Admin\AdminOrderController;
 use Cafeteria\Controllers\Admin\CategoryController;
 use Cafeteria\Controllers\Admin\FulfillmentController;
 use Cafeteria\Controllers\Admin\ProductController;
+use Cafeteria\Controllers\Admin\RoomController;
 use Cafeteria\Controllers\Admin\UserController;
 use Cafeteria\Controllers\Admin\ReportController;
 use Cafeteria\Controllers\Auth\ForgotPasswordController;
@@ -38,6 +39,7 @@ use Cafeteria\Repositories\Pdo\PdoOrderQueryRepository;
 use Cafeteria\Repositories\Pdo\PdoPasswordResetTokenRepository;
 use Cafeteria\Repositories\Pdo\PdoProductRepository;
 use Cafeteria\Repositories\Pdo\PdoReportRepository;
+use Cafeteria\Repositories\Pdo\PdoRoomRepository;
 use Cafeteria\Services\AuthService;
 use Cafeteria\Services\CategoryService;
 use Cafeteria\Services\OrderService;
@@ -45,6 +47,7 @@ use Cafeteria\Services\OrderStatusService;
 use Cafeteria\Services\UserOrderQueryService;
 use Cafeteria\Services\PasswordResetService;
 use Cafeteria\Services\ProductService;
+use Cafeteria\Services\RoomService;
 use Cafeteria\Services\UserService;
 use Cafeteria\Services\ReportExportService;
 use Cafeteria\Services\ReportQueryService;
@@ -55,6 +58,7 @@ use Cafeteria\Validation\PasswordResetValidator;
 use Cafeteria\Validation\PlaceOrderOnBehalfValidator;
 use Cafeteria\Validation\PlaceOrderValidator;
 use Cafeteria\Validation\ProductValidator;
+use Cafeteria\Validation\RoomValidator;
 use Cafeteria\Validation\UserValidator;
 use Cafeteria\Validation\ChecksFilterValidator;
 use Cafeteria\Mail\LogMailer;
@@ -114,6 +118,8 @@ $resetTokens = new PdoPasswordResetTokenRepository($pdo);
 
 $categoryRepository = new PdoCategoryRepository($pdo);
 
+$roomRepository = new PdoRoomRepository($pdo);
+
 $productRepository = new PdoProductRepository($pdo);
 
 $orderCommandRepository = new PdoOrderCommandRepository($pdo);
@@ -129,6 +135,8 @@ $loginValidator = new LoginValidator();
 $passwordResetValidator = new PasswordResetValidator();
 
 $categoryValidator = new CategoryValidator();
+
+$roomValidator = new RoomValidator();
 
 $productValidator = new ProductValidator();
 
@@ -229,8 +237,15 @@ $categoryService = new CategoryService(
     $adminPolicy,
 );
 
+$roomService = new RoomService(
+    $roomRepository,
+    $roomValidator,
+    $adminPolicy,
+);
+
 $userService = new UserService(
     $adminUserRepository,
+    $roomRepository,
     $userValidator,
     $adminPolicy,
     $profileUploader,
@@ -291,8 +306,16 @@ $controllers = [
         $flash,
     ),
 
+    RoomController::class => new RoomController(
+        $roomService,
+        $csrf,
+        $flash,
+    ),
+
     UserController::class => new UserController(
         $userService,
+        $roomRepository,
+        $authService,
         $csrf,
         $flash,
     ),
@@ -322,7 +345,9 @@ $controllers = [
 
     CatalogController::class => new CatalogController(
         $productRepository,
+        $categoryRepository,
         $orderQueryRepository,
+        $flash,
     ),
 
     OrderController::class => new OrderController(
@@ -413,6 +438,7 @@ return [
         'auth_users' => $authUsers,
         'reset_tokens' => $resetTokens,
         'categories' => $categoryRepository,
+        'rooms' => $roomRepository,
         'admin_users' => $adminUserRepository,
         'products' => $productRepository,
         'orders_command' => $orderCommandRepository,
@@ -424,6 +450,7 @@ return [
         'auth' => $authService,
         'password_reset' => $passwordResetService,
         'categories' => $categoryService,
+        'rooms' => $roomService,
         'users' => $userService,
         'products' => $productService,
         'orders' => $orderService,

@@ -311,8 +311,11 @@ final class ReportSecurityTest extends HttpTestCase
             $content
         );
 
-        self::assertStringNotContainsString(
-            'Demo Admin',
+        // Path user is #2 (Demo User). The logged-in admin name appears in the
+        // navbar, so assert the drill-down subject itself was not swapped by
+        // the conflicting user_id filter.
+        self::assertMatchesRegularExpression(
+            '/User details.*?Name<\/dt>\s*<dd class="col-sm-9">\s*Demo User/s',
             $content
         );
     }

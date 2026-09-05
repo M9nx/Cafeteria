@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 /** @var string $mode */
 /** @var array<string, mixed>|null $user */
+/** @var list<array<string, mixed>> $rooms */
 /** @var list<string> $errors */
 /** @var string $csrfToken */
 /** @var array<string, mixed> $old */
 
 $isEdit = $mode === 'edit';
 $user = $user ?? [];
+$rooms = $rooms ?? [];
 $old = $old ?? [];
 $errors = $errors ?? [];
 
@@ -21,6 +23,12 @@ $email = $old['email'] ?? $user['email'] ?? '';
 $role = $old['role'] ?? $user['role'] ?? 'USER';
 $roomId = $old['room_id'] ?? $user['room_id'] ?? '';
 $extension = $old['extension'] ?? $user['extension'] ?? '';
+$profileImagePath = isset($user['profile_image_path'])
+    ? (string) $user['profile_image_path']
+    : '';
+$profileImageUrl = $profileImagePath !== ''
+    ? \Cafeteria\Support\PublicFileUrl::fromStoredPath($profileImagePath)
+    : null;
 
 $action = $isEdit
     ? '/admin/users/' . (int) ($user['id'] ?? 0) . '/update'
@@ -106,15 +114,25 @@ $action = $isEdit
             </div>
 
             <div class="col-md-4">
-                <label for="room_id" class="form-label">Room ID</label>
-                <input
-                    type="number"
-                    id="room_id"
-                    name="room_id"
-                    class="form-control"
-                    min="1"
-                    value="<?= $e($roomId) ?>"
-                >
+                <label for="room_id" class="form-label">Room</label>
+                <select id="room_id" name="room_id" class="form-select">
+                    <option value="">None</option>
+                    <?php foreach ($rooms as $room): ?>
+                        <?php
+                        $optionId = (int) ($room['id'] ?? 0);
+                        $selected = (string) $roomId !== ''
+                            && (int) $roomId === $optionId;
+                        $inactive = (int) ($room['is_active'] ?? 1) !== 1;
+                        ?>
+                        <option
+                            value="<?= $optionId ?>"
+                            <?= $selected ? 'selected' : '' ?>
+                        >
+                            <?= $e($room['name'] ?? '') ?>
+                            <?= $inactive ? ' (inactive)' : '' ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div class="col-md-4">
@@ -127,6 +145,9 @@ $action = $isEdit
                     value="<?= $e($extension) ?>"
                     maxlength="20"
                 >
+                <div class="form-text">
+                    Desk/phone extension for delivery contact.
+                </div>
             </div>
 
             <div class="col-md-6">
@@ -149,6 +170,18 @@ $action = $isEdit
 
             <div class="col-md-6">
                 <label for="image" class="form-label">Profile image</label>
+                <?php if ($isEdit && $profileImageUrl !== null && !str_contains($profileImageUrl, 'placeholder')): ?>
+                    <div class="mb-2">
+                        <img
+                            src="<?= $e($profileImageUrl) ?>"
+                            alt="Current profile image"
+                            class="rounded"
+                            width="72"
+                            height="72"
+                            style="object-fit: cover;"
+                        >
+                    </div>
+                <?php endif; ?>
                 <input
                     type="file"
                     id="image"
@@ -156,6 +189,11 @@ $action = $isEdit
                     class="form-control"
                     accept="image/jpeg,image/png,image/webp"
                 >
+                <?php if ($isEdit): ?>
+                    <div class="form-text">
+                        Optional. Leave empty to keep the current image.
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

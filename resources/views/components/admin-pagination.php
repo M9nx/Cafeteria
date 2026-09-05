@@ -9,7 +9,7 @@ $perPage = max(1, (int) ($paginated['per_page'] ?? 15));
 $total = max(0, (int) ($paginated['total'] ?? 0));
 $totalPages = max(1, (int) ceil($total / $perPage));
 
-if ($totalPages <= 1) {
+if ($total === 0) {
     return;
 }
 
@@ -20,7 +20,7 @@ $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 ?>
 
-<nav aria-label="Admin pagination" class="mt-4">
+<nav aria-label="Admin pagination" class="mt-4 admin-pagination">
     <ul class="pagination mb-0">
         <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
             <?php if ($page > 1): ?>
@@ -33,18 +33,9 @@ $e = static fn (mixed $value): string =>
             <?php endif; ?>
         </li>
 
-        <?php for ($currentPage = 1; $currentPage <= $totalPages; $currentPage++): ?>
-            <li class="page-item <?= $currentPage === $page ? 'active' : '' ?>">
-                <?php if ($currentPage === $page): ?>
-                    <span class="page-link" aria-current="page"><?= $currentPage ?></span>
-                <?php else: ?>
-                    <?php $query['page'] = $currentPage; ?>
-                    <a class="page-link" href="<?= $e($currentPath . '?' . http_build_query($query)) ?>">
-                        <?= $currentPage ?>
-                    </a>
-                <?php endif; ?>
-            </li>
-        <?php endfor; ?>
+        <li class="page-item disabled">
+            <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
+        </li>
 
         <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
             <?php if ($page < $totalPages): ?>

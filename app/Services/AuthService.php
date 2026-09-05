@@ -44,14 +44,20 @@ final class AuthService
             email: $user->email,
             name: $user->name,
             role: $user->role,
+            profileImagePath: $user->profileImagePath,
         );
 
-        $this->session->set(
-            AuthMiddleware::SESSION_USER_KEY,
-            $authenticatedUser->toSessionArray(),
-        );
+        $this->remember($authenticatedUser);
 
         return true;
+    }
+
+    public function remember(AuthenticatedUser $user): void
+    {
+        $this->session->set(
+            AuthMiddleware::SESSION_USER_KEY,
+            $user->toSessionArray(),
+        );
     }
 
     public function logout(): void

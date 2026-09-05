@@ -239,7 +239,7 @@ final class FakeProductRepository implements ProductRepositoryInterface
         return ['items' => [], 'total' => 0, 'page' => $page, 'per_page' => $perPage];
     }
 
-    public function paginateAvailable(int $page = 1, int $perPage = 15): array
+    public function paginateAvailable(int $page = 1, int $perPage = 15, ?int $categoryId = null): array
     {
         return [
             'items' => [],

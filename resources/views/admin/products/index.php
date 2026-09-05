@@ -27,10 +27,10 @@ $e = static fn (mixed $value): string =>
 $flash = $flash ?? [];
 ?>
 
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
+<div class="page-heading">
     <div>
-        <h1 class="h3 mb-1">Products</h1>
-        <p class="text-body-secondary mb-0">
+        <h1 class="h3">Products</h1>
+        <p>
             Manage catalog items, prices, and availability.
         </p>
     </div>
@@ -39,23 +39,6 @@ $flash = $flash ?? [];
         Create product
     </a>
 </div>
-
-<?php foreach ($flash as $type => $message): ?>
-    <?php
-    $alertType = $type === 'error' ? 'danger' : (string) $type;
-    $allowed = ['success', 'danger', 'warning', 'info'];
-    $alertType = in_array($alertType, $allowed, true) ? $alertType : 'info';
-    ?>
-    <div class="alert alert-<?= $e($alertType) ?> alert-dismissible fade show" role="alert">
-        <?= $e(is_array($message) ? ($message['message'] ?? '') : $message) ?>
-        <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
-            aria-label="Close message"
-        ></button>
-    </div>
-<?php endforeach; ?>
 
     <?php if ($items === []): ?>
 
@@ -117,7 +100,10 @@ $flash = $flash ?? [];
                                     <form
                                         method="POST"
                                         action="/admin/products/<?= $e($product['id'] ?? '') ?>/deactivate"
-                                        onsubmit="return confirm('Deactivate this product?');"
+                                        data-confirm="Deactivate this product? It will leave the catalogue."
+                                        data-confirm-title="Deactivate product"
+                                        data-confirm-label="Deactivate"
+                                        data-confirm-tone="danger"
                                     >
                                         <input
                                             type="hidden"
@@ -141,55 +127,38 @@ $flash = $flash ?? [];
             </table>
         </div>
 
-        <?php if ($totalPages > 1): ?>
-            <nav aria-label="Product pagination">
-                <ul class="pagination">
+        <nav aria-label="Product pagination" class="mt-3 admin-pagination">
+            <ul class="pagination mb-0">
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                    <?php if ($page > 1): ?>
+                        <a
+                            class="page-link"
+                            href="/admin/products?page=<?= $page - 1 ?>"
+                        >
+                            Previous
+                        </a>
+                    <?php else: ?>
+                        <span class="page-link">Previous</span>
+                    <?php endif; ?>
+                </li>
 
-                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                        <?php if ($page > 1): ?>
-                            <a
-                                class="page-link"
-                                href="/admin/products?page=<?= $page - 1 ?>"
-                            >
-                                Previous
-                            </a>
-                        <?php else: ?>
-                            <span class="page-link">Previous</span>
-                        <?php endif; ?>
-                    </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
+                </li>
 
-                    <?php for ($currentPage = 1; $currentPage <= $totalPages; $currentPage++): ?>
-                        <li class="page-item <?= $currentPage === $page ? 'active' : '' ?>">
-                            <?php if ($currentPage === $page): ?>
-                                <span class="page-link" aria-current="page">
-                                    <?= $currentPage ?>
-                                </span>
-                            <?php else: ?>
-                                <a
-                                    class="page-link"
-                                    href="/admin/products?page=<?= $currentPage ?>"
-                                >
-                                    <?= $currentPage ?>
-                                </a>
-                            <?php endif; ?>
-                        </li>
-                    <?php endfor; ?>
-
-                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                        <?php if ($page < $totalPages): ?>
-                            <a
-                                class="page-link"
-                                href="/admin/products?page=<?= $page + 1 ?>"
-                            >
-                                Next
-                            </a>
-                        <?php else: ?>
-                            <span class="page-link">Next</span>
-                        <?php endif; ?>
-                    </li>
-
-                </ul>
-            </nav>
-        <?php endif; ?>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                    <?php if ($page < $totalPages): ?>
+                        <a
+                            class="page-link"
+                            href="/admin/products?page=<?= $page + 1 ?>"
+                        >
+                            Next
+                        </a>
+                    <?php else: ?>
+                        <span class="page-link">Next</span>
+                    <?php endif; ?>
+                </li>
+            </ul>
+        </nav>
 
     <?php endif; ?>

@@ -9,14 +9,16 @@ use Cafeteria\Core\Auth\CsrfTokenManager;
 use Cafeteria\Core\Http\Request;
 use Cafeteria\Core\Http\Response;
 use Cafeteria\Core\Session\FlashBag;
-use Cafeteria\Services\CategoryService;
 use Cafeteria\DTO\CreateCategoryRequest;
 use Cafeteria\DTO\UpdateCategoryRequest;
+use Cafeteria\Services\CategoryService;
 use InvalidArgumentException;
 use RuntimeException;
 
 final class CategoryController
 {
+    use RendersAdminView;
+
     public function __construct(
         private readonly CategoryService $categories,
         private readonly CsrfTokenManager $csrf,
@@ -37,12 +39,15 @@ final class CategoryController
             $perPage
         );
 
-        return Response::html(
-            $this->render('admin/categories/index.php', [
+        return $this->renderAdmin(
+            $user,
+            'admin.categories.index',
+            'Categories',
+            [
                 'categories' => $result,
                 'csrfToken' => $this->csrf->token(),
                 'flash' => $this->flash->pullAll(),
-            ])
+            ],
         );
     }
 
@@ -50,13 +55,17 @@ final class CategoryController
         Request $request,
         AuthenticatedUser $user
     ): Response {
-        return Response::html(
-            $this->render('admin/categories/form.php', [
+        return $this->renderAdmin(
+            $user,
+            'admin.categories.form',
+            'Create category',
+            [
                 'mode' => 'create',
                 'category' => null,
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -80,15 +89,17 @@ final class CategoryController
 
             return Response::redirect('/admin/categories');
         } catch (InvalidArgumentException $exception) {
-            return Response::html(
-                $this->render('admin/categories/form.php', [
+            return $this->renderAdmin(
+                $user,
+                'admin.categories.form',
+                'Create category',
+                [
                     'mode' => 'create',
                     'category' => null,
                     'errors' => [$exception->getMessage()],
-                    'oldName' => (string) $request->input('name', ''),
+                    'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -98,15 +109,23 @@ final class CategoryController
         AuthenticatedUser $user,
         int $id
     ): Response {
-        $category = $this->categories->findById($user, $id);
+        $category = $this->categories->find($user, $id);
 
-        return Response::html(
-            $this->render('admin/categories/form.php', [
+        if ($category === null) {
+            throw new RuntimeException('Category not found.');
+        }
+
+        return $this->renderAdmin(
+            $user,
+            'admin.categories.form',
+            'Edit category',
+            [
                 'mode' => 'edit',
                 'category' => $category,
                 'errors' => [],
+                'old' => [],
                 'csrfToken' => $this->csrf->token(),
-            ])
+            ],
         );
     }
 
@@ -119,7 +138,9 @@ final class CategoryController
 
         $dto = new UpdateCategoryRequest(
             (string) $request->input('name', ''),
-            (bool) $request->input('is_active', false)
+            $request->input('is_active') === '1'
+            || $request->input('is_active') === 1
+            || $request->input('is_active') === true
         );
 
         try {
@@ -136,18 +157,23 @@ final class CategoryController
 
             return Response::redirect('/admin/categories');
         } catch (InvalidArgumentException | RuntimeException $exception) {
-            return Response::html(
-                $this->render('admin/categories/form.php', [
+            return $this->renderAdmin(
+                $user,
+                'admin.categories.form',
+                'Edit category',
+                [
                     'mode' => 'edit',
                     'category' => [
                         'id' => $id,
                         'name' => (string) $request->input('name', ''),
-                        'is_active' => (bool) $request->input('is_active', false),
+                        'is_active' => $request->input('is_active') === '1'
+                            || $request->input('is_active') === 1
+                            || $request->input('is_active') === true,
                     ],
                     'errors' => [$exception->getMessage()],
+                    'old' => $request->body(),
                     'csrfToken' => $this->csrf->token(),
-                ]),
-                422
+                ],
             );
         }
     }
@@ -190,23 +216,5 @@ final class CategoryController
         )) {
             throw new RuntimeException('Invalid CSRF token.');
         }
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function render(
-        string $view,
-        array $data = []
-    ): string {
-        extract($data);
-
-        ob_start();
-
-        require dirname(__DIR__, 3)
-            . '/resources/views/'
-            . $view;
-
-        return (string) ob_get_clean();
     }
 }

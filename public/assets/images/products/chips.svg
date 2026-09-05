@@ -1,7 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Chips">
-  <rect width="320" height="240" fill="#f7f0dc"/>
-  <path d="M118 48h84c10 0 18 8 18 18v124c0 10-8 18-18 18h-84c-10 0-18-8-18-18V66c0-10 8-18 18-18z" fill="#eab308"/>
-  <rect x="108" y="86" width="104" height="56" fill="#dc2626"/>
-  <text x="160" y="122" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#fefce8">CHIPS</text>
-  <ellipse cx="160" cy="200" rx="52" ry="10" fill="#ca8a04"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Chips">
+  <defs>
+    <linearGradient id="chipsBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff7e6"/>
+      <stop offset="100%" stop-color="#fffdf8"/>
+    </linearGradient>
+    <linearGradient id="bag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#chipsBg)"/>
+  <ellipse cx="320" cy="352" rx="110" ry="18" fill="#e8d19a"/>
+  <path d="M230 70h180c22 0 40 18 40 40v210c0 22-18 40-40 40H230c-22 0-40-18-40-40V110c0-22 18-40 40-40z" fill="url(#bag)"/>
+  <rect x="210" y="150" width="220" height="100" fill="#dc2626"/>
+  <text x="320" y="212" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="42" font-weight="700" fill="#fff7ed">CHIPS</text>
+  <ellipse cx="270" cy="300" rx="28" ry="14" fill="#fde68a" transform="rotate(-18 270 300)"/>
+  <ellipse cx="340" cy="312" rx="30" ry="14" fill="#fcd34d" transform="rotate(12 340 312)"/>
 </svg>

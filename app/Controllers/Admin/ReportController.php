@@ -28,11 +28,20 @@ final class ReportController
     ): Response {
         $filters = $this->rawFilters($request);
         $errors = [];
-        $summary = ['users' => []];
+        $page = max(1, (int) $request->input('page', 1));
+        $perPage = max(1, min(50, (int) $request->input('per_page', 15)));
+        $summary = [
+            'users' => [],
+            'total' => 0,
+            'page' => $page,
+            'per_page' => $perPage,
+            'total_orders' => 0,
+            'total_amount' => '0.00',
+        ];
 
         try {
             [$filter, $filters] = $this->buildFilter($request);
-            $summary = $this->reports->summarize($filter);
+            $summary = $this->reports->summarize($filter, $page, $perPage);
         } catch (InvalidArgumentException $exception) {
             $errors = [$exception->getMessage()];
         }
@@ -78,13 +87,20 @@ final class ReportController
     ): Response {
         $filters = $this->rawFilters($request);
         $errors = [];
+        $page = max(1, (int) $request->input('page', 1));
+        $perPage = max(1, min(50, (int) $request->input('per_page', 15)));
         $drillDown = [
             'user' => [
                 'id' => $id,
                 'name' => '',
                 'email' => '',
             ],
-            'orders' => [],
+            'orders' => [
+                'items' => [],
+                'total' => 0,
+                'page' => $page,
+                'per_page' => $perPage,
+            ],
             'summary' => [
                 'order_count' => 0,
                 'total_amount' => '0.00',
@@ -93,7 +109,7 @@ final class ReportController
 
         try {
             [$filter, $filters] = $this->buildFilter($request);
-            $drillDown = $this->reports->drillDown($id, $filter);
+            $drillDown = $this->reports->drillDown($id, $filter, $page, $perPage);
         } catch (InvalidArgumentException $exception) {
             $errors = [$exception->getMessage()];
         }

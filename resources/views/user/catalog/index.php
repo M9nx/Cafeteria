@@ -8,15 +8,24 @@ declare(strict_types=1);
  *     total: int,
  *     page: int,
  *     per_page: int
- * } $products
+ * } $available
+ * @var array{
+ *     items: list<array<string, mixed>>,
+ *     total: int,
+ *     page: int,
+ *     per_page: int
+ * } $curated
+ * @var list<array<string, mixed>> $categories
+ * @var int|null $selectedCategoryId
  * @var array<string, mixed>|null $latestOrder
+ * @var array<string, string>|null $flash
+ * @var string|null $userName
+ * @var int $availablePage
+ * @var int $curatedPage
  */
 
-$items = $products['items'] ?? [];
-$total = (int) ($products['total'] ?? 0);
-$page = max(1, (int) ($products['page'] ?? 1));
-$perPage = max(1, (int) ($products['per_page'] ?? 15));
-$totalPages = max(1, (int) ceil($total / $perPage));
+$userName = trim((string) ($userName ?? ''));
+$availableTotal = (int) ($available['total'] ?? 0);
 
 $e = static fn (mixed $value): string =>
     htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -24,88 +33,76 @@ $e = static fn (mixed $value): string =>
 
 <?php require dirname(__DIR__, 2) . '/components/catalog-assets.php'; ?>
 
-<section aria-labelledby="catalog-heading">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <h1 id="catalog-heading" class="h3 mb-0">Catalogue</h1>
-        <a href="/orders/new" class="btn btn-primary">New order</a>
-    </div>
+<section class="catalog-home" aria-labelledby="catalog-heading" data-catalog-root>
+    <header class="catalog-hero" data-purpose="hero-banner">
+        <div class="catalog-hero-orb" aria-hidden="true"></div>
+        <div class="catalog-hero-copy">
+            <span class="catalog-eyebrow">Cafeteria Desk</span>
+            <h1 id="catalog-heading"><?= $userName !== ''
+                ? 'Good day, ' . $e($userName)
+                : 'Today’s menu'
+            ?></h1>
+            <p class="catalog-lede">
+                Choose drinks and snacks for your room. Cart totals are a preview —
+                the kitchen confirms final prices at checkout.
+            </p>
+            <div class="catalog-hero-actions">
+                <a href="/orders/new" class="btn catalog-btn-light">Start an order</a>
+                <a href="/orders" class="btn catalog-btn-ghost">My orders</a>
+            </div>
+        </div>
+    </header>
 
     <?php if ($latestOrder !== null): ?>
-        <div class="card mb-4">
-            <div class="card-body">
-                <h2 class="h6 card-title mb-2">Latest order</h2>
-
-                <p class="mb-1">
-                    <span class="text-muted">Status:</span>
-                    <?= $e($latestOrder['status'] ?? '') ?>
-                </p>
-
-                <p class="mb-1">
-                    <span class="text-muted">Room:</span>
-                    <?= $e($latestOrder['room_name'] ?? '') ?>
-                </p>
-
-                <p class="mb-0">
-                    <span class="text-muted">Total:</span>
-                    <?= $e($latestOrder['total_amount'] ?? '0.00') ?>
-                </p>
+        <aside class="latest-order-panel" aria-label="Latest order" data-purpose="latest-order-widget">
+            <div class="latest-order-grid">
+                <div>
+                    <p class="latest-order-kicker">Latest Order</p>
+                    <p class="latest-order-total mb-0">
+                        <?= $e($latestOrder['total_amount'] ?? '0.00') ?>
+                        <span>EGP</span>
+                    </p>
+                </div>
+                <div>
+                    <p class="latest-order-kicker">Status</p>
+                    <?php
+                    $status = (string) ($latestOrder['status'] ?? '');
+                    require dirname(__DIR__, 2) . '/components/order-status-badge.php';
+                    ?>
+                </div>
+                <div class="latest-order-room">
+                    <p class="latest-order-kicker">Room</p>
+                    <p class="latest-order-room-name mb-0"><?= $e($latestOrder['room_name'] ?? '—') ?></p>
+                </div>
+                <div class="latest-order-cta">
+                    <?php if (!empty($latestOrder['id'])): ?>
+                        <a
+                            class="btn catalog-btn-outline"
+                            href="/orders/<?= (int) $latestOrder['id'] ?>"
+                        >
+                            View details
+                        </a>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
+        </aside>
     <?php endif; ?>
 
-    <?php if ($items === []): ?>
-        <div class="alert alert-info" role="status">
-            No products are available right now.
+    <?php if ($availableTotal === 0): ?>
+        <div class="catalog-empty" role="status">
+            <h2 class="h5 mb-2">Kitchen is quiet</h2>
+            <p class="text-muted mb-0">No products are available right now. Check back soon.</p>
         </div>
     <?php else: ?>
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-2 g-4">
-                    <?php foreach ($items as $product): ?>
-                        <div class="col">
-                            <?php require dirname(__DIR__, 2) . '/components/product-card.php'; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <?php if ($totalPages > 1): ?>
-                    <nav class="mt-4" aria-label="Catalogue pagination">
-                        <ul class="pagination justify-content-center mb-0">
-                            <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-                                <?php if ($page > 1): ?>
-                                    <a class="page-link" href="/?page=<?= $page - 1 ?>">Previous</a>
-                                <?php else: ?>
-                                    <span class="page-link">Previous</span>
-                                <?php endif; ?>
-                            </li>
-                            <li class="page-item disabled">
-                                <span class="page-link">
-                                    Page <?= $page ?> of <?= $totalPages ?>
-                                </span>
-                            </li>
-                            <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-                                <?php if ($page < $totalPages): ?>
-                                    <a class="page-link" href="/?page=<?= $page + 1 ?>">Next</a>
-                                <?php else: ?>
-                                    <span class="page-link">Next</span>
-                                <?php endif; ?>
-                            </li>
-                        </ul>
-                    </nav>
-                <?php endif; ?>
+        <div class="catalog-dashboard">
+            <div class="catalog-main" data-catalog-panels>
+                <?php require __DIR__ . '/partials/available.php'; ?>
+                <?php require __DIR__ . '/partials/curated.php'; ?>
             </div>
 
-            <div class="col-lg-4">
+            <aside class="catalog-aside" data-purpose="cart-summary">
                 <?php require dirname(__DIR__, 2) . '/components/cart-summary.php'; ?>
-
-                <p class="text-muted small mt-2 mb-3">
-                    Cart totals are a preview only. The server validates prices at checkout.
-                </p>
-
-                <a href="/orders/new" class="btn btn-primary w-100">
-                    Continue to checkout
-                </a>
-            </div>
+            </aside>
         </div>
     <?php endif; ?>
 </section>

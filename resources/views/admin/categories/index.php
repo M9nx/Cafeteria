@@ -7,133 +7,116 @@ declare(strict_types=1);
 /** @var string $csrfToken */
 
 $items = $categories['items'] ?? [];
+$total = (int) ($categories['total'] ?? 0);
+$page = max(1, (int) ($categories['page'] ?? 1));
+$perPage = max(1, (int) ($categories['per_page'] ?? 15));
+$totalPages = max(1, (int) ceil($total / $perPage));
+
+$e = static fn (mixed $value): string =>
+    htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Categories</title>
-</head>
-
-<body>
-
-<h1>Admin Categories</h1>
-
-<?php foreach ($flash as $type => $message): ?>
-
+<div class="page-heading">
     <div>
-        <?= htmlspecialchars(
-            $message,
-            ENT_QUOTES,
-            'UTF-8'
-        ) ?>
+        <h1 class="h3">Categories</h1>
+        <p>Organize catalogue products into categories.</p>
     </div>
 
-<?php endforeach; ?>
-
-<p>
-    <a href="/admin/categories/create">
-        Create Category
+    <a href="/admin/categories/create" class="btn btn-primary">
+        Create category
     </a>
-</p>
+</div>
 
 <?php if ($items === []): ?>
 
-    <p>No categories found.</p>
+    <div class="alert alert-info" role="status">
+        No categories found.
+    </div>
 
 <?php else: ?>
 
-<table border="1" cellpadding="8">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <caption class="visually-hidden">Product categories</caption>
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $category): ?>
+                    <tr>
+                        <td><?= (int) ($category['id'] ?? 0) ?></td>
+                        <td><?= $e($category['name'] ?? '') ?></td>
+                        <td>
+                            <?php if ((int) ($category['is_active'] ?? 0) === 1): ?>
+                                <span class="badge text-bg-success">Active</span>
+                            <?php else: ?>
+                                <span class="badge text-bg-secondary">Inactive</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a
+                                    href="/admin/categories/<?= (int) ($category['id'] ?? 0) ?>/edit"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+                                    Edit
+                                </a>
 
-    <thead>
+                                <?php if ((int) ($category['is_active'] ?? 0) === 1): ?>
+                                    <form
+                                        method="POST"
+                                        action="/admin/categories/<?= (int) ($category['id'] ?? 0) ?>/deactivate"
+                                        data-confirm="Deactivate this category?"
+                                        data-confirm-title="Deactivate category"
+                                        data-confirm-label="Deactivate"
+                                        data-confirm-tone="danger"
+                                    >
+                                        <input
+                                            type="hidden"
+                                            name="_csrf_token"
+                                            value="<?= $e($csrfToken) ?>"
+                                        >
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                        >
+                                            Deactivate
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Actions</th>
-    </tr>
-
-    </thead>
-
-    <tbody>
-
-    <?php foreach ($items as $category): ?>
-
-        <tr>
-
-            <td>
-                <?= (int) $category['id'] ?>
-            </td>
-
-            <td>
-                <?= htmlspecialchars(
-                    (string) $category['name'],
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
-            </td>
-
-            <td>
-                <?= (int) $category['is_active'] === 1
-                    ? 'Active'
-                    : 'Inactive'
-                ?>
-            </td>
-
-            <td>
-
-                <a href="/admin/categories/<?= (int) $category['id'] ?>/edit">
-                    Edit
-                </a>
-
-                <?php if ((int) $category['is_active'] === 1): ?>
-
-                    <form
-                        method="POST"
-                        action="/admin/categories/<?= (int) $category['id'] ?>/deactivate"
-                        style="display:inline"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="_csrf_token"
-                            value="<?= htmlspecialchars(
-                                $csrfToken,
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?>"
-                        >
-
-                        <button
-                            type="submit"
-                            onclick="return confirm('Are you sure you want to deactivate this category?')"
-                        >
-                            Deactivate
-                        </button>
-
-                    </form>
-
+    <nav aria-label="Category pagination" class="mt-3 admin-pagination">
+        <ul class="pagination mb-0">
+            <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                <?php if ($page > 1): ?>
+                    <a class="page-link" href="/admin/categories?page=<?= $page - 1 ?>">Previous</a>
+                <?php else: ?>
+                    <span class="page-link">Previous</span>
                 <?php endif; ?>
-
-            </td>
-
-        </tr>
-
-    <?php endforeach; ?>
-
-    </tbody>
-
-</table>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page <?= $page ?> of <?= $totalPages ?></span>
+            </li>
+            <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                <?php if ($page < $totalPages): ?>
+                    <a class="page-link" href="/admin/categories?page=<?= $page + 1 ?>">Next</a>
+                <?php else: ?>
+                    <span class="page-link">Next</span>
+                <?php endif; ?>
+            </li>
+        </ul>
+    </nav>
 
 <?php endif; ?>
-
-<?php
-require dirname(__DIR__, 2)
-    . '/components/pagination.php';
-?>
-
-</body>
-</html>

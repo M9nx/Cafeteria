@@ -126,7 +126,7 @@
 
             if (searchStatus) {
                 searchStatus.textContent =
-                    `Showing ${visibleRows} report row(s).`;
+                    `Showing ${visibleRows} report row(s) on this page.`;
             }
 
             if (searchEmpty) {

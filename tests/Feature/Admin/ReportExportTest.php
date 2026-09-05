@@ -149,35 +149,54 @@ final class ReportExportTest extends HttpTestCase
 /** @implements ReportRepositoryInterface */
 final class FormulaStubReportRepository implements ReportRepositoryInterface
 {
-    public function summarize(array $filters): array
-    {
-        return [
-            'users' => [
-                [
-                    'user_id' => 10,
-                    'user_name' => '=1+1',
-                    'order_count' => 1,
-                    'total_amount' => '+100',
-                ],
-                [
-                    'user_id' => 11,
-                    'user_name' => '@SUM(A1)',
-                    'order_count' => 1,
-                    'total_amount' => '-50.00',
-                ],
-                [
-                    'user_id' => 12,
-                    'user_name' => 'Safe User',
-                    'order_count' => 2,
-                    'total_amount' => '40.00',
-                ],
+    public function summarize(
+        array $filters,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
+        $users = [
+            [
+                'user_id' => 10,
+                'user_name' => '=1+1',
+                'order_count' => 1,
+                'total_amount' => '+100',
             ],
+            [
+                'user_id' => 11,
+                'user_name' => '@SUM(A1)',
+                'order_count' => 1,
+                'total_amount' => '-50.00',
+            ],
+            [
+                'user_id' => 12,
+                'user_name' => 'Safe User',
+                'order_count' => 2,
+                'total_amount' => '40.00',
+            ],
+        ];
+
+        return [
+            'users' => $users,
+            'total' => count($users),
+            'page' => $page,
+            'per_page' => $perPage ?? count($users),
+            'total_orders' => 4,
+            'total_amount' => '90.00',
         ];
     }
 
-    public function ordersForUser(int $userId, array $filters): array
-    {
-        return [];
+    public function ordersForUser(
+        int $userId,
+        array $filters,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
+        return [
+            'items' => [],
+            'total' => 0,
+            'page' => $page,
+            'per_page' => $perPage ?? 1,
+        ];
     }
 
     public function orderDetailsForReport(int $orderId, array $filters): ?array

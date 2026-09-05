@@ -55,7 +55,9 @@ $e = static fn (mixed $value): string =>
                                         <form
                                             method="POST"
                                             action="/admin/orders/<?= $orderId ?>/status"
-                                            onsubmit="return confirm('Move order to <?= $e($nextStatus) ?>?');"
+                                            data-confirm="Move this order to <?= $e($nextStatus) ?>?"
+                                            data-confirm-title="Update order status"
+                                            data-confirm-label="Update status"
                                         >
                                             <?php if (isset($csrfField) && is_string($csrfField)): ?>
                                                 <?= $csrfField ?>
@@ -71,7 +73,10 @@ $e = static fn (mixed $value): string =>
                                         <form
                                             method="POST"
                                             action="/orders/<?= $orderId ?>/cancel"
-                                            onsubmit="return confirm('Cancel this order?');"
+                                            data-confirm="Cancel this order? This cannot be undone."
+                                            data-confirm-title="Cancel order"
+                                            data-confirm-label="Cancel order"
+                                            data-confirm-tone="danger"
                                         >
                                             <?php if (isset($csrfField) && is_string($csrfField)): ?>
                                                 <?= $csrfField ?>
@@ -88,5 +93,10 @@ $e = static fn (mixed $value): string =>
                 </tbody>
             </table>
         </div>
+
+        <?php
+        $paginated = $queue;
+        require dirname(__DIR__, 2) . '/components/admin-pagination.php';
+        ?>
     <?php endif; ?>
 </section>

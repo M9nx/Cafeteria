@@ -89,4 +89,28 @@ final class AdminPolicyTest extends TestCase
 
         self::assertFalse($this->policy->canManageCategories($user));
     }
+
+    public function test_admin_can_manage_rooms(): void
+    {
+        $admin = new AuthenticatedUser(
+            1,
+            'admin@example.test',
+            'Admin',
+            Role::Admin
+        );
+
+        self::assertTrue($this->policy->canManageRooms($admin));
+    }
+
+    public function test_regular_user_cannot_manage_rooms(): void
+    {
+        $user = new AuthenticatedUser(
+            5,
+            'user@example.test',
+            'User',
+            Role::User
+        );
+
+        self::assertFalse($this->policy->canManageRooms($user));
+    }
 }

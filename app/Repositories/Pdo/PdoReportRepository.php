@@ -22,10 +22,20 @@ final class PdoReportRepository implements ReportRepositoryInterface
      *     include_cancelled?: bool
      * } $filter
      *
-     * @return array<string, mixed>
+     * @return array{
+     *     users: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int,
+     *     total_orders: int,
+     *     total_amount: string
+     * }
      */
-    public function summarize(array $filter): array
-    {
+    public function summarize(
+        array $filter,
+        int $page = 1,
+        ?int $perPage = null,
+    ): array {
         $where = ['1 = 1'];
         $params = [];
 
@@ -33,8 +43,38 @@ final class PdoReportRepository implements ReportRepositoryInterface
 
         $whereSql = implode(' AND ', $where);
 
-        $statement = $this->pdo->prepare(
+        $totalsStatement = $this->pdo->prepare(
             'SELECT
+                COUNT(*) AS total_orders,
+                COALESCE(SUM(o.total_amount), 0) AS total_amount,
+                COUNT(DISTINCT o.user_id) AS user_count
+             FROM orders o
+             INNER JOIN users u
+                 ON u.id = o.user_id
+             WHERE ' . $whereSql
+        );
+
+        $totalsStatement->execute($params);
+
+        /** @var array{total_orders: int|string, total_amount: string|float|int, user_count: int|string}|false $totals */
+        $totals = $totalsStatement->fetch(PDO::FETCH_ASSOC);
+
+        $totalUsers = (int) ($totals['user_count'] ?? 0);
+        $totalOrders = (int) ($totals['total_orders'] ?? 0);
+        $totalAmount = number_format(
+            (float) ($totals['total_amount'] ?? 0),
+            2,
+            '.',
+            '',
+        );
+
+        $page = max(1, $page);
+        $limitAll = $perPage === null;
+        $resolvedPerPage = $limitAll
+            ? max(1, $totalUsers > 0 ? $totalUsers : 1)
+            : max(1, $perPage);
+
+        $sql = 'SELECT
                 o.user_id,
                 u.name AS user_name,
                 COUNT(*) AS order_count,
@@ -44,13 +84,32 @@ final class PdoReportRepository implements ReportRepositoryInterface
                  ON u.id = o.user_id
              WHERE ' . $whereSql . '
              GROUP BY o.user_id, u.name
-             ORDER BY total_amount DESC, o.user_id ASC'
-        );
+             ORDER BY total_amount DESC, o.user_id ASC';
 
-        $statement->execute($params);
+        if ($limitAll) {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($params);
+        } else {
+            $sql .= ' LIMIT :limit OFFSET :offset';
+            $statement = $this->pdo->prepare($sql);
+            $offset = ($page - 1) * $resolvedPerPage;
+
+            foreach ($params as $name => $value) {
+                $statement->bindValue(':' . $name, $value);
+            }
+
+            $statement->bindValue(':limit', $resolvedPerPage, PDO::PARAM_INT);
+            $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $statement->execute();
+        }
 
         return [
             'users' => $statement->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $totalUsers,
+            'page' => $page,
+            'per_page' => $resolvedPerPage,
+            'total_orders' => $totalOrders,
+            'total_amount' => $totalAmount,
         ];
     }
 
@@ -61,11 +120,18 @@ final class PdoReportRepository implements ReportRepositoryInterface
      *     include_cancelled?: bool
      * } $filter
      *
-     * @return array<int, array<string, mixed>>
+     * @return array{
+     *     items: list<array<string, mixed>>,
+     *     total: int,
+     *     page: int,
+     *     per_page: int
+     * }
      */
     public function ordersForUser(
         int $userId,
-        array $filter
+        array $filter,
+        int $page = 1,
+        ?int $perPage = null,
     ): array {
         $where = ['o.user_id = :user_id'];
         $params = [
@@ -76,8 +142,27 @@ final class PdoReportRepository implements ReportRepositoryInterface
 
         $whereSql = implode(' AND ', $where);
 
-        $statement = $this->pdo->prepare(
-            'SELECT
+        $countStatement = $this->pdo->prepare(
+            'SELECT COUNT(*)
+             FROM orders o
+             INNER JOIN users u
+                 ON u.id = o.user_id
+             INNER JOIN rooms r
+                 ON r.id = o.room_id
+             WHERE ' . $whereSql
+        );
+
+        $countStatement->execute($params);
+
+        $total = (int) $countStatement->fetchColumn();
+
+        $page = max(1, $page);
+        $limitAll = $perPage === null;
+        $resolvedPerPage = $limitAll
+            ? max(1, $total > 0 ? $total : 1)
+            : max(1, $perPage);
+
+        $sql = 'SELECT
                 o.id,
                 o.user_id,
                 u.name AS user_name,
@@ -95,12 +180,31 @@ final class PdoReportRepository implements ReportRepositoryInterface
              INNER JOIN rooms r
                  ON r.id = o.room_id
              WHERE ' . $whereSql . '
-             ORDER BY o.created_at DESC, o.id DESC'
-        );
+             ORDER BY o.created_at DESC, o.id DESC';
 
-        $statement->execute($params);
+        if ($limitAll) {
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute($params);
+        } else {
+            $sql .= ' LIMIT :limit OFFSET :offset';
+            $statement = $this->pdo->prepare($sql);
+            $offset = ($page - 1) * $resolvedPerPage;
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($params as $name => $value) {
+                $statement->bindValue(':' . $name, $value);
+            }
+
+            $statement->bindValue(':limit', $resolvedPerPage, PDO::PARAM_INT);
+            $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $statement->execute();
+        }
+
+        return [
+            'items' => $statement->fetchAll(PDO::FETCH_ASSOC),
+            'total' => $total,
+            'page' => $page,
+            'per_page' => $resolvedPerPage,
+        ];
     }
 
     /**
