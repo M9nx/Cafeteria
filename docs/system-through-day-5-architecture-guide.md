@@ -1,12 +1,14 @@
 # Cafeteria Management System — Architecture Atlas (through Day 5)
 
-**Version:** 1.0  
-**Date:** 3 September 2026  
+**Version:** 1.1  
+**Date:** 5 September 2026  
+**Branch snapshot:** `main` @ merge of [PR #62](https://github.com/M9nx/Cafeteria/pull/62) (UI redesign + Rooms CRUD + catalog AJAX)  
 **Audience:** Reviewers, new team members, and anyone who needs the live system in pictures  
-**Scope:** The application **as it exists after Days 1–5**, including later small fixes (public media URLs, users list showing USER and ADMIN)  
-**Prose companions:** [Day 1](day-1-foundation-guide.md) · [Day 2](day-2-authentication-admin-guide.md) · [Day 3](day-3-catalog-ordering-guide.md) · [Day 4](day-4-order-lifecycle-guide.md) · [Day 5](day-5-reporting-security-guide.md)
+**Scope:** The application **as it exists on current `main`** after Days 1–5 plus post–Day-5 work (Fondo2na UI, rooms admin, dual catalog pagination, confirm modals, profile avatar session)  
+**Prose companions:** [Day 1](day-1-foundation-guide.md) · [Day 2](day-2-authentication-admin-guide.md) · [Day 3](day-3-catalog-ordering-guide.md) · [Day 4](day-4-order-lifecycle-guide.md) · [Day 5](day-5-reporting-security-guide.md)  
+**Deep companions:** [Request lifecycle & codebase atlas](request-lifecycle-and-codebase-atlas.md) · [Database & schema guide](database-schema-guide.md)
 
-> This is a **visual system atlas**, not a repeat of the day guides. Every diagram matches code under `app/`, `public/`, `routes/`, and `bootstrap/app.php`.
+> This is a **visual system atlas**, not a repeat of the day guides. Every numbered figure matches code under `app/`, `public/`, `routes/`, and `bootstrap/app.php`. Figures are numbered **Figure 1 … Figure 23** in reading order.
 
 ---
 
@@ -51,7 +53,7 @@ C4 levels used here:
 | Component | What is inside the PHP HTTP process? | §4 |
 | Code | Which classes implement a hot path? | §5 |
 
-DFDs show **data**, not HTTP methods. Sequences show **time**. State diagrams show **order status**.
+DFDs show **data**, not HTTP methods. Sequences show **time**. State diagrams show **order status**. Every Mermaid block is captioned as **Figure N** so you can cite graphs by number.
 
 There is **no message queue product** (no Redis/RabbitMQ). “Queue” in this product means the **admin current-order list**.
 
@@ -60,6 +62,8 @@ There is **no message queue product** (no Redis/RabbitMQ). “Queue” in this p
 ## 2. C4 context
 
 People and systems that talk to Cafeteria. Cursor Markdown Preview does not support Mermaid `C4Context`, so this is a C4 **context** view drawn as a flowchart.
+
+**Figure 1 — C4 context**
 
 ```mermaid
 flowchart LR
@@ -82,11 +86,13 @@ External systems we do **not** have: payment gateway, inventory ERP, public REST
 
 This is the “go into container” view: runnable units, not Docker (the course app is PHP CLI + built-in server).
 
+**Figure 2 — C4 containers**
+
 ```mermaid
 flowchart TB
   subgraph browser ["Container: Browser"]
     HTML["HTML views"]
-    JS["cart.js / order-details.js / reports.js"]
+    JS["cart.js / catalog.js / order-create.js / order-details.js / reports.js / app.js"]
     SS["sessionStorage cart"]
     HTML --> JS
     JS --> SS
@@ -108,7 +114,7 @@ flowchart TB
     Logs["storage/logs"]
   end
   subgraph db ["Container: MySQL"]
-    Tables["rooms, users, products, orders"]
+    Tables["rooms, users, categories, products, orders, order_items, history, reset tokens"]
   end
   subgraph mailc ["Container: Mail"]
     LogM["LogMailer"]
@@ -137,6 +143,8 @@ flowchart TB
 
 ## 4. C4 components — HTTP container
 
+**Figure 3 — C4 components — HTTP container**
+
 ```mermaid
 flowchart TB
   subgraph entry [Front]
@@ -154,7 +162,7 @@ flowchart TB
     AuthC[Auth controllers]
     CatC[CatalogController]
     OrdC[OrderController]
-    AdmC["Admin CRUD fulfillment reports"]
+    AdmC["Admin CRUD rooms fulfillment reports"]
     MedC[MediaController]
     Health[HealthController]
   end
@@ -197,6 +205,8 @@ flowchart TB
 
 ## 5. C4 code — selected internals
 
+**Figure 4 — C4 code — selected internals**
+
 ```mermaid
 flowchart LR
   subgraph httpObj [HTTP objects]
@@ -237,6 +247,8 @@ Hot-path rules:
 
 Dependency direction is **inward**: controllers → services → contracts → PDO. Views receive arrays, never PDO.
 
+**Figure 5 — Layer dependency atlas**
+
 ```mermaid
 flowchart BT
   Views[Views]
@@ -265,15 +277,15 @@ flowchart BT
 | `LoginController`, `LogoutController`, `ForgotPasswordController`, `ResetPasswordController` | Auth |
 | `CatalogController` | Catalogue |
 | `OrderController` | User orders |
-| `UserController`, `CategoryController`, `ProductController` | Admin CRUD |
+| `UserController`, `CategoryController`, `ProductController`, `RoomController` | Admin CRUD |
 | `FulfillmentController`, `AdminOrderController` | Fulfillment / on-behalf |
 | `ReportController` | Checks |
 
-Admin HTML goes through `RendersAdminView` + `layouts.app`.
+Admin HTML goes through `RendersAdminView` + `layouts.app`. Catalogue AJAX returns JSON partials via `View::renderToString` + `Response::json`.
 
 ### 6.2 Services
 
-`AuthService`, `PasswordResetService`, `UserService`, `CategoryService`, `ProductService`, `OrderService`, `OrderStatusService`, `UserOrderQueryService`, `ReportQueryService`, `ReportExportService`.
+`AuthService`, `PasswordResetService`, `UserService`, `CategoryService`, `RoomService`, `ProductService`, `OrderService`, `OrderStatusService`, `UserOrderQueryService`, `ReportQueryService`, `ReportExportService`.
 
 ### 6.3 Domain
 
@@ -281,17 +293,19 @@ Admin HTML goes through `RendersAdminView` + `layouts.app`.
 
 ### 6.4 Policies
 
-`AdminPolicy` (manage users/catalog/reports), `OrderPolicy` (view/cancel/transition).
+`AdminPolicy` (manage users/rooms/catalog/reports), `OrderPolicy` (view/cancel/transition).
 
 ### 6.5 Views and assets
 
-Layouts: `layouts.app`, `layouts.guest`. User: catalog, orders. Admin: users, categories, products, orders queue/create, reports. JS: `cart.js` (preview only), `order-details.js`, `reports.js` (presentation), `app.js`.
+Layouts: `layouts.app`, `layouts.guest`. User: catalog (+ AJAX partials), orders create/history/show. Admin: users, rooms, categories, products, orders queue/create, reports. CSS: `app.css`, `catalog.css`, `orders.css`, `reports.css`, `notifications.css`. JS: `app.js` (confirm modal), `cart.js`, `catalog.js`, `order-create.js`, `order-details.js`, `reports.js`.
 
 ---
 
 ## 7. Composition root (the PHP container)
 
 There is **no** Symfony/Laravel container. [bootstrap/app.php](../bootstrap/app.php) builds a `$controllers` map of `class-string => object` and a `Router::setControllerFactory`.
+
+**Figure 6 — Composition root (DI wiring)**
 
 ```mermaid
 flowchart TD
@@ -311,6 +325,8 @@ CLI scripts (`migrate.php`, `seed.php`) load Environment + PDO themselves; they 
 ---
 
 ## 8. DFD level 0 — whole system
+
+**Figure 7 — DFD level 0 — whole system**
 
 ```mermaid
 flowchart LR
@@ -332,6 +348,8 @@ flowchart LR
 ---
 
 ## 9. DFD level 1 — major processes
+
+**Figure 8 — DFD level 1 — major processes**
 
 ```mermaid
 flowchart TB
@@ -374,6 +392,8 @@ Processes talk to **one** logical data store (MySQL). Uploads are a second store
 
 ### 10.1 Place order
 
+**Figure 9 — DFD level 2 — place order**
+
 ```mermaid
 flowchart LR
   Cart[Cart in sessionStorage]
@@ -394,6 +414,8 @@ Client total is **not** an input to `OrderService`.
 
 ### 10.2 Report export
 
+**Figure 10 — DFD level 2 — report export**
+
 ```mermaid
 flowchart LR
   Qs[Query string]
@@ -412,6 +434,8 @@ flowchart LR
 
 ### 11.1 Order status machine
 
+**Figure 11 — Order status state machine**
+
 ```mermaid
 stateDiagram-v2
   [*] --> PROCESSING: place order
@@ -423,6 +447,8 @@ stateDiagram-v2
 Current queue includes `PROCESSING` and `OUT_FOR_DELIVERY` only. `DONE` and `CANCELLED` are excluded from the queue; cancelled orders are excluded from default money reports.
 
 ### 11.2 Current queue as a set
+
+**Figure 12 — Current fulfillment queue as a set**
 
 ```mermaid
 flowchart TB
@@ -444,6 +470,8 @@ Each successful cancel or hop appends `order_status_history`. Failed races write
 ## 12. HTTP dispatch pipeline
 
 Not a job queue — one request, one response.
+
+**Figure 13 — HTTP dispatch pipeline**
 
 ```mermaid
 sequenceDiagram
@@ -471,6 +499,8 @@ sequenceDiagram
 ---
 
 ## 13. Sequence — authentication
+
+**Figure 14 — Sequence — authentication**
 
 ```mermaid
 sequenceDiagram
@@ -500,6 +530,8 @@ Logout: `POST /logout` + CSRF → session destroy → login.
 
 ## 14. Sequence — catalogue and place order
 
+**Figure 15 — Sequence — catalogue and place order**
+
 ```mermaid
 sequenceDiagram
   actor User
@@ -527,6 +559,8 @@ sequenceDiagram
 
 ## 15. Sequence — history, detail, cancel
 
+**Figure 16 — Sequence — history, detail, cancel**
+
 ```mermaid
 sequenceDiagram
   actor User
@@ -548,6 +582,8 @@ sequenceDiagram
 
 ## 16. Sequence — fulfillment queue
 
+**Figure 17 — Sequence — fulfillment queue**
+
 ```mermaid
 sequenceDiagram
   actor Admin
@@ -567,6 +603,8 @@ sequenceDiagram
 
 ## 17. Sequence — admin on-behalf
 
+**Figure 18 — Sequence — admin on-behalf**
+
 ```mermaid
 sequenceDiagram
   actor Admin
@@ -582,6 +620,8 @@ sequenceDiagram
 ---
 
 ## 18. Sequence — CRUD, uploads, media
+
+**Figure 19 — Sequence — CRUD, uploads, media**
 
 ```mermaid
 sequenceDiagram
@@ -608,6 +648,8 @@ sequenceDiagram
 
 ## 19. Sequence — checks, drill-down, export
 
+**Figure 20 — Sequence — checks, drill-down, export**
+
 ```mermaid
 sequenceDiagram
   actor Admin
@@ -627,6 +669,8 @@ sequenceDiagram
 ---
 
 ## 20. Sequence — authorization boundaries
+
+**Figure 21 — Sequence — authorization boundaries**
 
 ```mermaid
 sequenceDiagram
@@ -648,6 +692,8 @@ Hiding the navbar link is **not** the control. Middleware is.
 ---
 
 ## 21. Trust boundaries
+
+**Figure 22 — Trust boundaries**
 
 ```mermaid
 flowchart TB
@@ -714,11 +760,11 @@ Registered from [routes/web.php](../routes/web.php) (`/media`, `/health` in boot
 
 | Method | Path | Notes |
 |--------|------|-------|
-| CRUD | `/admin/users`, categories, products | List includes both roles for users |
-| GET | `/admin/orders`, `/admin/orders/current` | Queue |
+| CRUD | `/admin/users`, categories, products, rooms | Users list includes USER and ADMIN; rooms soft-deactivate |
+| GET | `/admin/orders`, `/admin/orders/current` | Queue (paginated) |
 | GET/POST | `/admin/orders/create`, `/admin/orders` | On-behalf |
 | POST | `/admin/orders/{id}/status` | Fulfillment |
-| GET | `/admin/checks` | Summary |
+| GET | `/admin/checks` | Summary (paginated) |
 | GET | `/admin/checks/users/{id}` | Drill-down |
 | GET | `/admin/checks/export` | CSV |
 
@@ -727,6 +773,8 @@ Registered from [routes/web.php](../routes/web.php) (`/media`, `/health` in boot
 ## 23. Data model
 
 Canonical picture: [docs/diagrams/erd.svg](diagrams/erd.svg).
+
+**Figure 23 — Entity-relationship diagram**
 
 ```mermaid
 erDiagram
@@ -781,45 +829,47 @@ Seeds: 3 rooms, 3 categories, 4 products, 2 users (`docs/database/seeding.md`).
 
 ### 24.1 Repository contracts
 
-`AuthUserRepositoryInterface`, `AdminUserRepositoryInterface`, `PasswordResetTokenRepositoryInterface`, `CategoryRepositoryInterface`, `ProductRepositoryInterface`, `OrderCommandRepositoryInterface`, `OrderQueryRepositoryInterface`, `ReportRepositoryInterface`.
+`AuthUserRepositoryInterface`, `AdminUserRepositoryInterface`, `PasswordResetTokenRepositoryInterface`, `CategoryRepositoryInterface`, `RoomRepositoryInterface`, `ProductRepositoryInterface`, `OrderCommandRepositoryInterface`, `OrderQueryRepositoryInterface`, `ReportRepositoryInterface`.
 
 ### 24.2 PDO implementations
 
-Matching `app/Repositories/Pdo/Pdo*.php` for each contract.
+Matching `app/Repositories/Pdo/Pdo*.php` for each contract (including `PdoRoomRepository`).
 
 ### 24.3 DTOs
 
-`LoginRequest`, `ForgotPasswordRequest`, `ResetPasswordRequest`, `CreateUserRequest`, `UpdateUserRequest`, `CreateCategoryRequest`, `UpdateCategoryRequest`, `CreateProductRequest`, `UpdateProductRequest`, `PlaceOrderRequest`, `OrderItemInput`, `PlaceOrderOnBehalfRequest`, `OrderHistoryFilter`, `ChecksFilter`.
+`LoginRequest`, `ForgotPasswordRequest`, `ResetPasswordRequest`, `CreateUserRequest`, `UpdateUserRequest`, `CreateCategoryRequest`, `UpdateCategoryRequest`, `CreateRoomRequest`, `UpdateRoomRequest`, `CreateProductRequest`, `UpdateProductRequest`, `PlaceOrderRequest`, `OrderItemInput`, `PlaceOrderOnBehalfRequest`, `OrderHistoryFilter`, `ChecksFilter`.
+
+Full method-level inventory: [request-lifecycle-and-codebase-atlas.md](request-lifecycle-and-codebase-atlas.md).
 
 ---
 
 ## 25. Diagram index
 
-| Diagram | Section | Type |
-|---------|---------|------|
-| System context | §2 | C4 / flowchart |
-| Containers | §3 | Architecture |
-| HTTP components | §4 | Architecture |
-| Code clusters | §5 | Architecture |
-| Layer dependencies | §6 | Architecture |
-| Composition root | §7 | Architecture |
-| DFD L0 | §8 | DFD |
-| DFD L1 | §9 | DFD |
-| Place-order DFD L2 | §10.1 | DFD |
-| Export DFD L2 | §10.2 | DFD |
-| Order state | §11.1 | State / queue |
-| Queue set | §11.2 | Queue |
-| HTTP pipeline | §12 | Sequence |
-| Login | §13 | Sequence |
-| Place order | §14 | Sequence |
-| History/cancel | §15 | Sequence |
-| Fulfillment | §16 | Sequence |
-| On-behalf | §17 | Sequence |
-| Upload/media | §18 | Sequence |
-| Checks | §19 | Sequence |
-| Authz | §20 | Sequence |
-| Trust | §21 | Architecture |
-| ER | §23 | Data |
+| Figure | Title | Section | Type |
+|--------|-------|---------|------|
+| Figure 1 | C4 context | §2 | C4 / flowchart |
+| Figure 2 | C4 containers | §3 | Architecture |
+| Figure 3 | C4 components — HTTP container | §4 | Architecture |
+| Figure 4 | C4 code — selected internals | §5 | Architecture |
+| Figure 5 | Layer dependency atlas | §6 | Architecture |
+| Figure 6 | Composition root (DI wiring) | §7 | Architecture |
+| Figure 7 | DFD level 0 — whole system | §8 | DFD |
+| Figure 8 | DFD level 1 — major processes | §9 | DFD |
+| Figure 9 | DFD level 2 — place order | §10.1 | DFD |
+| Figure 10 | DFD level 2 — report export | §10.2 | DFD |
+| Figure 11 | Order status state machine | §11.1 | State / queue |
+| Figure 12 | Current fulfillment queue as a set | §11.2 | Queue |
+| Figure 13 | HTTP dispatch pipeline | §12 | Sequence |
+| Figure 14 | Sequence — authentication | §13 | Sequence |
+| Figure 15 | Sequence — catalogue and place order | §14 | Sequence |
+| Figure 16 | Sequence — history, detail, cancel | §15 | Sequence |
+| Figure 17 | Sequence — fulfillment queue | §16 | Sequence |
+| Figure 18 | Sequence — admin on-behalf | §17 | Sequence |
+| Figure 19 | Sequence — CRUD, uploads, media | §18 | Sequence |
+| Figure 20 | Sequence — checks, drill-down, export | §19 | Sequence |
+| Figure 21 | Sequence — authorization boundaries | §20 | Sequence |
+| Figure 22 | Trust boundaries | §21 | Architecture |
+| Figure 23 | Entity-relationship diagram | §23 | Data |
 
 ---
 
@@ -854,4 +904,4 @@ GitHub and Cursor Markdown Preview render standard Mermaid (`flowchart`, `sequen
 
 ---
 
-*End of Architecture Atlas (through Day 5)*
+*End of Architecture Atlas (through Day 5) — Figures 1–23 numbered; current `main` as of 5 September 2026*
