@@ -53,12 +53,23 @@ require __DIR__ . '/query.php';
                     <?php
                     $cid = (int) ($category['id'] ?? 0);
                     $cname = (string) ($category['name'] ?? '');
+                    $cimage = \Cafeteria\Support\DemoImageMap::category($cname);
                     ?>
                     <a
                         href="<?= $e($catalogQuery(['category' => $cid, 'cpage' => 1])) ?>"
                         class="catalog-chip<?= $selectedCategoryId === $cid ? ' is-active' : '' ?>"
                         data-catalog-ajax
                     >
+                        <?php if ($cimage !== null): ?>
+                            <img
+                                class="catalog-chip-thumb"
+                                src="<?= $e($cimage) ?>"
+                                alt=""
+                                width="22"
+                                height="22"
+                                loading="lazy"
+                            >
+                        <?php endif; ?>
                         <?= $e($cname) ?>
                     </a>
                 <?php endforeach; ?>
