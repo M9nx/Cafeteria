@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ?? document.getElementById('cart-items');
     const orderTotal = document.getElementById('order-total')
         ?? document.getElementById('cart-total');
+    const cartCount = document.getElementById('cart-count');
+    const orderItemCount = document.getElementById('order-item-count');
+    const checkoutButton = document.getElementById('cart-checkout');
 
     if (!orderItems || !orderTotal) {
         return;
@@ -31,6 +34,27 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(payload));
     };
 
+    const updateCount = () => {
+        let count = 0;
+        cart.forEach((item) => {
+            count += Math.max(0, Number(item.quantity) || 0);
+        });
+
+        if (cartCount instanceof HTMLElement) {
+            cartCount.textContent = String(count);
+        }
+
+        if (orderItemCount instanceof HTMLElement) {
+            orderItemCount.textContent = `${count} item${count === 1 ? '' : 's'}`;
+        }
+
+        if (checkoutButton instanceof HTMLElement) {
+            const empty = count === 0;
+            checkoutButton.classList.toggle('is-disabled', empty);
+            checkoutButton.setAttribute('aria-disabled', empty ? 'true' : 'false');
+        }
+    };
+
     const renderCart = () => {
         orderItems.replaceChildren();
 
@@ -45,57 +69,52 @@ document.addEventListener('DOMContentLoaded', () => {
             total += lineTotal;
 
             const wrapper = document.createElement('div');
-            wrapper.className = 'card mb-3';
-
-            const body = document.createElement('div');
-            body.className = 'card-body';
-
-            const header = document.createElement('div');
-            header.className = 'd-flex justify-content-between align-items-start gap-3';
-
-            const details = document.createElement('div');
-            const title = document.createElement('h2');
-            title.className = 'h6 mb-1';
-            title.textContent = item.name;
-
-            const unitPrice = document.createElement('p');
-            unitPrice.className = 'text-muted small mb-2';
-            unitPrice.textContent = formatMoney(price);
-
-            details.append(title, unitPrice);
-
-            const lineTotalEl = document.createElement('strong');
-            lineTotalEl.textContent = formatMoney(lineTotal);
-
-            header.append(details, lineTotalEl);
-
-            const controls = document.createElement('div');
-            controls.className = 'd-flex align-items-center gap-2 mt-3';
-
-            const decreaseButton = document.createElement('button');
-            decreaseButton.type = 'button';
-            decreaseButton.className = 'btn btn-outline-secondary quantity-decrease';
-            decreaseButton.dataset.productId = String(productId);
-            decreaseButton.setAttribute('aria-label', `Decrease ${item.name} quantity`);
-            decreaseButton.textContent = '−';
-
-            const quantityLabel = document.createElement('span');
-            quantityLabel.className = 'px-2';
-            quantityLabel.setAttribute('aria-label', 'Quantity');
-            quantityLabel.textContent = String(quantity);
-
-            const increaseButton = document.createElement('button');
-            increaseButton.type = 'button';
-            increaseButton.className = 'btn btn-outline-secondary quantity-increase';
-            increaseButton.dataset.productId = String(productId);
-            increaseButton.setAttribute('aria-label', `Increase ${item.name} quantity`);
-            increaseButton.textContent = '+';
-
-            controls.append(decreaseButton, quantityLabel, increaseButton);
-
-            body.append(header, controls);
+            wrapper.className = orderForm ? 'order-line' : 'cart-line';
 
             if (orderForm) {
+                const top = document.createElement('div');
+                top.className = 'order-line-top';
+
+                const details = document.createElement('div');
+                const title = document.createElement('p');
+                title.className = 'order-line-name';
+                title.textContent = item.name;
+
+                const unitPrice = document.createElement('p');
+                unitPrice.className = 'order-line-meta';
+                unitPrice.textContent = `${formatMoney(price)} × ${quantity}`;
+
+                details.append(title, unitPrice);
+
+                const lineTotalEl = document.createElement('span');
+                lineTotalEl.className = 'order-line-total';
+                lineTotalEl.textContent = formatMoney(lineTotal);
+
+                top.append(details, lineTotalEl);
+
+                const controls = document.createElement('div');
+                controls.className = 'order-line-controls';
+
+                const decreaseButton = document.createElement('button');
+                decreaseButton.type = 'button';
+                decreaseButton.className = 'btn btn-outline-secondary quantity-decrease';
+                decreaseButton.dataset.productId = String(productId);
+                decreaseButton.setAttribute('aria-label', `Decrease ${item.name} quantity`);
+                decreaseButton.textContent = '−';
+
+                const quantityLabel = document.createElement('span');
+                quantityLabel.setAttribute('aria-label', 'Quantity');
+                quantityLabel.textContent = String(quantity);
+
+                const increaseButton = document.createElement('button');
+                increaseButton.type = 'button';
+                increaseButton.className = 'btn btn-outline-secondary quantity-increase';
+                increaseButton.dataset.productId = String(productId);
+                increaseButton.setAttribute('aria-label', `Increase ${item.name} quantity`);
+                increaseButton.textContent = '+';
+
+                controls.append(decreaseButton, quantityLabel, increaseButton);
+
                 const productInput = document.createElement('input');
                 productInput.type = 'hidden';
                 productInput.name = `items[${itemIndex}][product_id]`;
@@ -106,22 +125,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 quantityInput.name = `items[${itemIndex}][quantity]`;
                 quantityInput.value = String(quantity);
 
-                body.append(productInput, quantityInput);
+                wrapper.append(top, controls, productInput, quantityInput);
                 itemIndex += 1;
+            } else {
+                const details = document.createElement('div');
+                const title = document.createElement('p');
+                title.className = 'fw-semibold mb-0';
+                title.textContent = item.name;
+
+                const meta = document.createElement('p');
+                meta.className = 'text-muted small mb-0';
+                meta.textContent = `${formatMoney(price)} × ${quantity}`;
+
+                const controls = document.createElement('div');
+                controls.className = 'cart-line-controls';
+
+                const decreaseButton = document.createElement('button');
+                decreaseButton.type = 'button';
+                decreaseButton.className = 'btn btn-outline-secondary btn-sm quantity-decrease';
+                decreaseButton.dataset.productId = String(productId);
+                decreaseButton.setAttribute('aria-label', `Decrease ${item.name} quantity`);
+                decreaseButton.textContent = '−';
+
+                const quantityLabel = document.createElement('span');
+                quantityLabel.textContent = String(quantity);
+
+                const increaseButton = document.createElement('button');
+                increaseButton.type = 'button';
+                increaseButton.className = 'btn btn-outline-secondary btn-sm quantity-increase';
+                increaseButton.dataset.productId = String(productId);
+                increaseButton.setAttribute('aria-label', `Increase ${item.name} quantity`);
+                increaseButton.textContent = '+';
+
+                controls.append(decreaseButton, quantityLabel, increaseButton);
+                details.append(title, meta, controls);
+
+                const lineTotalEl = document.createElement('strong');
+                lineTotalEl.textContent = formatMoney(lineTotal);
+
+                wrapper.append(details, lineTotalEl);
             }
 
-            wrapper.append(body);
             orderItems.append(wrapper);
         });
 
         if (cart.size === 0) {
-            const emptyMessage = document.createElement('p');
-            emptyMessage.className = 'text-muted mb-0';
-            emptyMessage.textContent = 'Your cart is empty.';
-            orderItems.append(emptyMessage);
+            if (orderForm) {
+                const empty = document.createElement('div');
+                empty.className = 'order-items-empty';
+                empty.innerHTML = '<p class="order-items-empty-title">Your cart is empty.</p><p class="order-items-empty-copy">Click “Add to order” on any product to begin.</p>';
+                orderItems.append(empty);
+            } else {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.className = 'cart-empty-copy';
+                emptyMessage.textContent = 'Your cart is empty.';
+                orderItems.append(emptyMessage);
+            }
         }
 
         orderTotal.textContent = formatMoney(total);
+        updateCount();
         saveCart();
     };
 
@@ -163,6 +226,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderCart();
+
+        const addLabel = button.getAttribute('data-add-label') || 'Add to cart';
+        button.classList.add('btn-success');
+        button.textContent = 'Added';
+        window.setTimeout(() => {
+            button.classList.remove('btn-success');
+            if (button.getAttribute('data-add-label')) {
+                button.innerHTML = `<span aria-hidden="true">+</span><span>${addLabel}</span>`;
+            } else {
+                button.textContent = addLabel;
+            }
+        }, 900);
     });
 
     document.addEventListener('click', (event) => {
@@ -201,6 +276,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cart.size === 0) {
                 event.preventDefault();
                 orderItems.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                let notice = document.getElementById('cart-empty-error');
+
+                if (!(notice instanceof HTMLElement)) {
+                    notice = document.createElement('div');
+                    notice.id = 'cart-empty-error';
+                    notice.className = 'app-flash app-flash-danger alert alert-danger mt-3';
+                    notice.setAttribute('role', 'alert');
+                    notice.textContent = 'Add at least one item before placing an order.';
+                    orderForm.prepend(notice);
+                }
             }
         });
     }
