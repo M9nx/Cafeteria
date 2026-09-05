@@ -10,6 +10,7 @@ use Cafeteria\DTO\CreateUserRequest;
 use Cafeteria\DTO\UpdateUserRequest;
 use Cafeteria\Policies\AdminPolicy;
 use Cafeteria\Repositories\Contracts\AdminUserRepositoryInterface;
+use Cafeteria\Repositories\Contracts\RoomRepositoryInterface;
 use Cafeteria\Validation\UserValidator;
 use InvalidArgumentException;
 use PDOException;
@@ -19,6 +20,7 @@ final class UserService
 {
     public function __construct(
         private readonly AdminUserRepositoryInterface $users,
+        private readonly RoomRepositoryInterface $rooms,
         private readonly UserValidator $validator,
         private readonly AdminPolicy $policy,
         private readonly SafeUploader $uploader,
@@ -63,6 +65,8 @@ final class UserService
                 implode(' ', $errors)
             );
         }
+
+        $this->assertRoomExists($request->roomId);
 
         $email = strtolower(trim($request->email));
 
@@ -120,6 +124,8 @@ final class UserService
                 implode(' ', $errors)
             );
         }
+
+        $this->assertRoomExists($request->roomId);
 
         $user = $this->users->findById($id);
 
@@ -209,6 +215,19 @@ final class UserService
     ): void {
         if (!$this->policy->canManageUsers($admin)) {
             throw new RuntimeException('Forbidden.');
+        }
+    }
+
+    private function assertRoomExists(?int $roomId): void
+    {
+        if ($roomId === null) {
+            return;
+        }
+
+        if ($this->rooms->findById($roomId) === null) {
+            throw new InvalidArgumentException(
+                'Selected room does not exist.'
+            );
         }
     }
 
