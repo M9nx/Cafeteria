@@ -74,25 +74,34 @@ final class PdoProductRepository implements ProductRepositoryInterface
 
     public function paginateAvailable(
         int $page = 1,
-        int $perPage = 15
+        int $perPage = 15,
+        ?int $categoryId = null,
     ): array {
         $page = max(1, $page);
         $perPage = max(1, $perPage);
 
+        $where = 'WHERE p.is_available = 1
+               AND p.deleted_at IS NULL';
+        $params = [];
+
+        if ($categoryId !== null && $categoryId > 0) {
+            $where .= ' AND p.category_id = :category_id';
+            $params['category_id'] = $categoryId;
+        }
+
         $countStmt = $this->pdo->prepare(
-            'SELECT COUNT(*)
-             FROM products
-             WHERE is_available = 1
-               AND deleted_at IS NULL'
+            "SELECT COUNT(*)
+             FROM products p
+             {$where}"
         );
-        $countStmt->execute();
+        $countStmt->execute($params);
 
         $total = (int) $countStmt->fetchColumn();
 
         $offset = ($page - 1) * $perPage;
 
         $stmt = $this->pdo->prepare(
-            'SELECT
+            "SELECT
                 p.id,
                 p.category_id,
                 c.name AS category_name,
@@ -103,11 +112,14 @@ final class PdoProductRepository implements ProductRepositoryInterface
              FROM products p
              INNER JOIN categories c
                  ON c.id = p.category_id
-             WHERE p.is_available = 1
-               AND p.deleted_at IS NULL
+             {$where}
              ORDER BY p.name ASC, p.id ASC
-             LIMIT :limit OFFSET :offset'
+             LIMIT :limit OFFSET :offset"
         );
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value, PDO::PARAM_INT);
+        }
 
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
