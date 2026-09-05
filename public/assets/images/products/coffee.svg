@@ -1,9 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" role="img" aria-label="Coffee">
-  <rect width="320" height="240" fill="#efe6d8"/>
-  <ellipse cx="156" cy="184" rx="72" ry="12" fill="#d7c4a8"/>
-  <path d="M92 96h116c10 0 18 8 18 18v40c0 30-30 52-76 52s-76-22-76-52v-40c0-10 8-18 18-18z" fill="#7c4a2d"/>
-  <path d="M226 120c20 0 32 16 28 32-4 16-22 24-40 22" fill="none" stroke="#3f2a1c" stroke-width="6" stroke-linecap="round"/>
-  <ellipse cx="156" cy="108" rx="48" ry="10" fill="#3f2a1c"/>
-  <path d="M140 72c6-16 22-16 28 0" fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
-  <path d="M162 64c5-12 16-12 22 0" fill="none" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420" role="img" aria-label="Coffee">
+  <defs>
+    <linearGradient id="coffeeBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#efe6d8"/>
+      <stop offset="100%" stop-color="#f8f4ee"/>
+    </linearGradient>
+    <linearGradient id="coffeeCup" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8b5a3c"/>
+      <stop offset="100%" stop-color="#4a2c1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="420" fill="url(#coffeeBg)"/>
+  <ellipse cx="310" cy="348" rx="150" ry="22" fill="#d7c4a8"/>
+  <path d="M190 150h220c22 0 40 18 40 40v86c0 58-66 102-150 102s-150-44-150-102v-86c0-22 18-40 40-40z" fill="url(#coffeeCup)"/>
+  <ellipse cx="300" cy="168" rx="96" ry="20" fill="#2b1a12"/>
+  <path d="M450 188c48 4 72 38 60 72-12 36-54 54-98 48" fill="none" stroke="#3f2a1c" stroke-width="14" stroke-linecap="round"/>
+  <path d="M270 118c14-32 46-32 60 0" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+  <path d="M316 104c10-24 34-24 46 0" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
 </svg>
