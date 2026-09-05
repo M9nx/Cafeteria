@@ -16,13 +16,13 @@ $labels = [
 $label = $labels[$status] ?? ucfirst(strtolower(str_replace('_', ' ', $status)));
 
 $classes = [
-    'PROCESSING' => 'bg-info text-dark',
-    'OUT_FOR_DELIVERY' => 'bg-primary',
-    'DONE' => 'bg-success',
-    'CANCELLED' => 'bg-danger',
+    'PROCESSING' => 'status-processing',
+    'OUT_FOR_DELIVERY' => 'status-delivery',
+    'DONE' => 'status-done',
+    'CANCELLED' => 'status-cancelled',
 ];
 
-$class = $classes[$status] ?? 'bg-secondary';
+$class = $classes[$status] ?? 'text-bg-secondary';
 ?>
 
 <span class="badge <?= htmlspecialchars($class, ENT_QUOTES, 'UTF-8') ?>">
