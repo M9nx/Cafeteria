@@ -9,7 +9,7 @@ use PDO;
 final class RoomsSeeder
 {
     /** @var list<string> */
-    private const ROOMS = ['Room 101', 'Room 102', 'Reception'];
+    private const ROOMS = ['Room 101', 'Room 102', 'Reception', 'Conference Hall'];
 
     public function __construct(private readonly PDO $connection) {}
 
