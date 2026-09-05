@@ -283,7 +283,7 @@ flowchart TD
   RS --> AP[AdminPolicy::canManageRooms]
   RS --> RV[RoomValidator]
   RS --> RR[PdoRoomRepository]
-  RC --> V[admin/rooms/index|form]
+  RC --> V["admin/rooms/index + form"]
 ```
 
 ### 5.6 Checks / export
